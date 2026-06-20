@@ -588,53 +588,45 @@
 
             $('#searchBar, #statusFilter').on('input change', applyFiltersAndRender);
 
-            $('#editForm').on('submit', async function(e) {
-                    e.preventDefault();
-                    const id = $('#edit-id').val();
-                    const updateData = {};
-                
-                    // Logic based on role: admin1, admin2, or admin3
-                    if (loggedInAdminRole === "admin1") {
-                        updateData.admin1_status = $('#edit-status').val();
-                        updateData.admin1_approved_by = $('#edit-approved_by').val();
-                        updateData.admin1_approval_date = $('#edit-approval_date').val() || null;
-                        updateData.admin1_remarks = $('#edit-remarks').val();
-                    }
-                    if (loggedInAdminRole === "admin2") {
-                        updateData.admin2_status = $('#edit-status').val();
-                        updateData.admin2_approved_by = $('#edit-approved_by').val();
-                        updateData.admin2_approval_date = $('#edit-approval_date').val() || null;
-                        updateData.admin2_remarks = $('#edit-remarks').val();
-                    }
-                    if (loggedInAdminRole === "admin3") {
-                        updateData.admin3_status = $('#edit-status').val();
-                        updateData.admin3_approved_by = $('#edit-approved_by').val();
-                        updateData.admin3_approval_date = $('#edit-approval_date').val() || null;
-                        updateData.admin3_remarks = $('#edit-remarks').val();
-                    }
-                    
-                    /* Calculate Final Status based on all admin statuses */
-                    const admin1 = updateData.admin1_status ?? currentActiveRecord.admin1_status;
-                    const admin2 = updateData.admin2_status ?? currentActiveRecord.admin2_status;
-                    const admin3 = updateData.admin3_status ?? currentActiveRecord.admin3_status;
-                    
-                    if ( admin1 === "Rejected" || admin2 === "Rejected" || admin3 === "Rejected" ) {
-                        updateData.final_status = "Rejected";
-                    } else if ( admin1 === "Approved" && admin2 === "Approved" && admin3 === "Approved" ) {
-                        updateData.final_status = "Approved";
-                    } else {
-                        updateData.final_status = "Pending";
-                    }
-                    
-                    const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
-                    if (error) {
-                        alert(error.message);
-                    } else {
-                        alert('تم حفظ البيانات وتحديثها سحابياً بنجاح!');
-                        $('#editModal').hide();
-                        fetchDashboardData(); // Refresh UI
-                    }
-                });
+           $('#editForm').on('submit', async function(e) {
+    e.preventDefault();
+    const id = $('#edit-id').val();
+    const updateData = {};
+
+    // 1. تحديث الحقول الخاصة بكل دور
+    if (loggedInAdminRole === "admin1") {
+        updateData.admin1_status = $('#edit-status').val();
+        updateData.admin1_remarks = $('#edit-remarks').val(); // الملاحظات العامة تستخدم هنا كـ admin1_remarks
+        updateData.admin1_approved_by = $('#edit-approved_by').val();
+        updateData.admin1_approval_date = $('#edit-approval_date').val() || null;
+    } 
+    else if (loggedInAdminRole === "admin2") {
+        updateData.admin2_status = $('#edit-status').val();
+        updateData.admin2_remarks = $('#edit-remarks').val();
+        updateData.admin2_approved_by = $('#edit-approved_by').val();
+        updateData.admin2_approval_date = $('#edit-approval_date').val() || null;
+    } 
+    else if (loggedInAdminRole === "admin3") {
+        updateData.admin3_status = $('#edit-status').val();
+        updateData.admin3_remarks = $('#edit-remarks').val();
+        updateData.admin3_approved_by = $('#edit-approved_by').val();
+        updateData.admin3_approval_date = $('#edit-approval_date').val() || null;
+    }
+
+    // 2. تحديث الحالة النهائية
+    // ملاحظة: المنطق البرمجي المكتوب سابقاً في الكود سيقوم بحساب الحالة النهائية تلقائياً
+    
+    const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
+    
+    if (error) {
+        alert('خطأ أثناء الحفظ: ' + error.message);
+    } else {
+        alert('تم حفظ البيانات بنجاح!');
+        $('#editModal').hide();
+        fetchDashboardData(); 
+    }
+});
+    
 
             $('#downloadPdfBtn').on('click', function () {
                 const element = document.getElementById('pdfPrintTargetArea');
@@ -731,37 +723,43 @@
             });
         }
 
-        // NOTE: Ensure this function is called when clicking 'View' in your dashboard table
-function openViewRecord(id) {
-    const r = localCacheData.find(x => x.id == id);
-    if (!r) return;
-    currentActiveRecord = r;
-
-    // Populate standard information
-    $('#pdf-employee_name').text(r.employee_name || '---');
-    $('#pdf-employee_number').text(r.employee_number || '---');
-    $('#pdf-job_title').text(r.job_title || '---');
-    $('#pdf-work_place').text(r.work_place || '---');
-    $('#pdf-grade').text(r.grade || '---');
-    $('#pdf-appointment_date').text(r.appointment_date || '---');
-
-    // Populate Study Info
-    $('#pdf-request_type').text(r.request_type || '---');
-    $('#pdf-study_system').text(r.study_system || '---');
-    $('#pdf-degree').text(r.degree || '---');
-    $('#pdf-specialization').text(r.specialization || '---');
-    $('#pdf-study_duration').text(r.study_duration || '---');
-    $('#pdf-study_location').text(r.study_location || '---');
-
-    // Populate Administrative sections as per the document structure
-    $('#pdf-disapproval_reasons').text(r.admin1_remarks || '---');
-    $('#pdf-proposed_workplace').text(r.proposed_workplace || '---');
-    $('#pdf-director_opinion').text(r.admin2_remarks || '---');
-    $('#pdf-gov_committee_decision').text(r.admin3_remarks || '---');
-    $('#pdf-committee_chair_signature').text(r.committee_chair_signature || '---');
-
-    switchView('pdfDocumentView');
-}
+            function openViewRecord(id) {
+                const r = localCacheData.find(x => x.id == id);
+                if (!r) return;
+                currentActiveRecord = r;
+            
+                // 1. بيانات الموظف
+                $('#pdf-employee_name').text(r.employee_name || '—');
+                $('#pdf-employee_number').text(r.employee_number || '—');
+                $('#pdf-job_title').text(r.job_title || '—');
+                $('#pdf-work_place').text(r.work_place || '—');
+                $('#pdf-grade').text(r.grade || '—');
+                $('#pdf-appointment_date').text(r.appointment_date || '—');
+            
+                // 2. بيانات الدراسة
+                $('#pdf-request_type').text(r.request_type || '—');
+                $('#pdf-study_system').text(r.study_system || '—');
+                $('#pdf-degree').text(r.degree || '—');
+                $('#pdf-specialization').text(r.specialization || '—');
+                $('#pdf-study_duration').text(r.study_duration || '—');
+                $('#pdf-study_location').text(r.study_location || '—');
+            
+                // 3. المسؤول الأول (Admin 1)
+                $('#pdf-disapproval_reasons').text(r.admin1_remarks || '—');
+            
+                // 4. المسؤول الثاني (Admin 2)
+                $('#pdf-proposed_workplace').text(r.proposed_workplace || '—');
+                $('#pdf-director_opinion').text(r.admin2_remarks || '—');
+            
+                // 5. المسؤول الثالث (Admin 3)
+                $('#pdf-gov_committee_decision').text(r.admin3_remarks || '—');
+                $('#pdf-committee_chair_signature').text(r.committee_chair_signature || '—');
+            
+                // 6. الحالة العامة
+                $('#pdf-status').text(r.final_status || 'قيد الانتظار');
+            
+                switchView('pdfDocumentView');
+            }
         function openEditRecord(id) {
             const r = localCacheData.find(x => x.id == id);
             if(!r) return;
