@@ -1498,7 +1498,7 @@
             $(`input[name="workplace_approval"][value="${r.workplace_approval || 'none'}"]`).prop('checked', true);
             $('#edit-disapproval_reasons').val(r.disapproval_reasons || '');
 
-            let admin1SummaryText = "لم يوافق بعد";
+            let admin1SummaryText = "لم يوافق ";
             if (r.workplace_approval === 'without_sub') admin1SummaryText = "موافق (بدون بديل)";
             if (r.workplace_approval === 'with_sub') admin1SummaryText = "موافق (مع توفير البديل)";
             if (r.disapproval_reasons) admin1SummaryText += ` - أسباب الرفض: ${r.disapproval_reasons}`;
