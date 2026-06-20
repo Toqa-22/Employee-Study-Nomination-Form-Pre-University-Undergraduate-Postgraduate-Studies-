@@ -638,21 +638,6 @@
                     else {
                         updateData.final_status = "Pending";
                     }
-
-                let statuses = [
-                    updateData.admin1_status ?? currentActiveRecord.admin1_status,
-                    updateData.admin2_status ?? currentActiveRecord.admin2_status,
-                    updateData.admin3_status ?? currentActiveRecord.admin3_status
-                    ];
-                    
-                    if(statuses.includes("Rejected"))
-                        updateData.final_status="Rejected";
-                    
-                    else if(statuses.every(x=>x=="Approved"))
-                        updateData.final_status="Approved";
-                    
-                    else
-                        updateData.final_status="Pending";
                                         
                 const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
                 if (error) alert(error.message);
@@ -688,7 +673,7 @@
 
         function setupRealtime() {
             supabaseClient.channel('schema-db-changes')
-            .on('postgres_changes', { event: '*', filter: 'status=eq.Pending', schema: 'public', table: 'study_requests' }, () => {
+            .on('postgres_changes', { event: '*', filter: 'final_status=eq.Pending', schema: 'public', table: 'study_requests' }, () => {
                 fetchDashboardData();
             })
             .subscribe();
@@ -777,12 +762,6 @@
             $('#pdf-specialization').text(r.specialization);
             $('#pdf-study_duration').text(r.study_duration);
             $('#pdf-study_location').text(r.study_location);
-
-            $('#pdf-approval_date').text(r.approval_date ? r.approval_date : "لم يحدد");
-            $('#pdf-approved_by').text(r.approved_by ? r.approved_by : "لم يحدد");
-            $('#pdf-clarification').text(r.clarification ? r.clarification : "—");
-            $('#pdf-recommendation').text(r.recommendation ? r.recommendation : "—");
-            $('#pdf-remarks').text(r.remarks ? r.remarks : "—");
             
             let finalStatusText = "قيد الانتظار الإداري";
             if(r.final_status === 'Approved') finalStatusText = "تم القبول والمصادقة النهائية للمستند ✔";
@@ -817,15 +796,9 @@
         function openEditRecord(id) {
             const r = localCacheData.find(x => x.id == id);
             if(!r) return;
+            currentActiveRecord = r;
             
             $('#edit-id').val(r.id);
-            
-            // Removed field element populations for agreement UI completely
-            $('#edit-approval_date').val(r.approval_date || '');
-            $('#edit-approved_by').val(r.approved_by || '');
-            $('#edit-clarification').val(r.clarification || '');
-            $('#edit-recommendation').val(r.recommendation || '');
-            $('#edit-remarks').val(r.remarks || '');
             
             if(loggedInAdminRole=="admin1"){
                 $('#edit-status').val(r.admin1_status);
@@ -834,6 +807,19 @@
                 $('#edit-remarks').val(r.admin1_remarks);
                 
                 }
+            if(loggedInAdminRole=="admin2"){
+                $('#edit-status').val(r.admin2_status);
+                $('#edit-approved_by').val(r.admin2_approved_by);
+                $('#edit-approval_date').val(r.admin2_approval_date);
+                $('#edit-remarks').val(r.admin2_remarks);
+            }
+            
+            if(loggedInAdminRole=="admin3"){
+                $('#edit-status').val(r.admin3_status);
+                $('#edit-approved_by').val(r.admin3_approved_by);
+                $('#edit-approval_date').val(r.admin3_approval_date);
+                $('#edit-remarks').val(r.admin3_remarks);
+            }
 
             $(`input[name="workplace_approval"][value="${r.workplace_approval || 'none'}"]`).prop('checked', true);
             $('#edit-disapproval_reasons').val(r.disapproval_reasons || '');
