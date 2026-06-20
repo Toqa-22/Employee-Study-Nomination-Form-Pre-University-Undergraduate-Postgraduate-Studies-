@@ -1171,8 +1171,17 @@
 
                     updateData.admin2_approval_date =
                         $('#edit-approval_date').val() || null;
+                    
+                    updateData.admin2_status = $('#edit-status').val();
+
+                    // 🔥 ADD THIS:
                     if (updateData.admin2_status === "Rejected") {
                         updateData.final_status = "Rejected";
+                    }
+                
+                    if (updateData.admin2_status === "Approved") {
+                        // optional: only approve if all stages approved
+                        updateData.final_status = "Approved";
                     }
                 }
                 else if (loggedInAdminRole === "admin3") {
