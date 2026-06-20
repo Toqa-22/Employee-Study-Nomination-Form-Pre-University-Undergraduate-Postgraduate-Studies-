@@ -589,25 +589,23 @@
             $('#searchBar, #statusFilter').on('input change', applyFiltersAndRender);
 
             $('#editForm').on('submit', async function(e) {
-                e.preventDefault();
-                const id = $('#edit-id').val();
+                    e.preventDefault();
+                    const id = $('#edit-id').val();
+                    const updateData = {};
                 
-                const updateData = {};
+                    // Logic based on role: admin1, admin2, or admin3
                     if (loggedInAdminRole === "admin1") {
                         updateData.admin1_status = $('#edit-status').val();
                         updateData.admin1_approved_by = $('#edit-approved_by').val();
                         updateData.admin1_approval_date = $('#edit-approval_date').val() || null;
                         updateData.admin1_remarks = $('#edit-remarks').val();
                     }
-                    
                     if (loggedInAdminRole === "admin2") {
                         updateData.admin2_status = $('#edit-status').val();
                         updateData.admin2_approved_by = $('#edit-approved_by').val();
                         updateData.admin2_approval_date = $('#edit-approval_date').val() || null;
                         updateData.admin2_remarks = $('#edit-remarks').val();
-                    
                     }
-                    
                     if (loggedInAdminRole === "admin3") {
                         updateData.admin3_status = $('#edit-status').val();
                         updateData.admin3_approved_by = $('#edit-approved_by').val();
@@ -615,38 +613,28 @@
                         updateData.admin3_remarks = $('#edit-remarks').val();
                     }
                     
-                    /* Calculate Final Status */
-                    
+                    /* Calculate Final Status based on all admin statuses */
                     const admin1 = updateData.admin1_status ?? currentActiveRecord.admin1_status;
                     const admin2 = updateData.admin2_status ?? currentActiveRecord.admin2_status;
                     const admin3 = updateData.admin3_status ?? currentActiveRecord.admin3_status;
                     
-                    if (
-                        admin1 === "Rejected" ||
-                        admin2 === "Rejected" ||
-                        admin3 === "Rejected"
-                    ) {
+                    if ( admin1 === "Rejected" || admin2 === "Rejected" || admin3 === "Rejected" ) {
                         updateData.final_status = "Rejected";
-                    }
-                    else if (
-                        admin1 === "Approved" &&
-                        admin2 === "Approved" &&
-                        admin3 === "Approved"
-                    ) {
+                    } else if ( admin1 === "Approved" && admin2 === "Approved" && admin3 === "Approved" ) {
                         updateData.final_status = "Approved";
-                    }
-                    else {
+                    } else {
                         updateData.final_status = "Pending";
                     }
-                                        
-                const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
-                if (error) alert(error.message);
-                else {
-                    alert('تم حفظ البيانات وتحديثها سحابياً بنجاح!');
-                    $('#editModal').hide();
-                    fetchDashboardData();
-                }
-            });
+                    
+                    const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
+                    if (error) {
+                        alert(error.message);
+                    } else {
+                        alert('تم حفظ البيانات وتحديثها سحابياً بنجاح!');
+                        $('#editModal').hide();
+                        fetchDashboardData(); // Refresh UI
+                    }
+                });
 
             $('#downloadPdfBtn').on('click', function () {
                 const element = document.getElementById('pdfPrintTargetArea');
@@ -743,56 +731,37 @@
             });
         }
 
-        function openViewRecord(id) {
-            const r = localCacheData.find(x => x.id == id);
-            if(!r) return;
-            currentActiveRecord = r;
+        // NOTE: Ensure this function is called when clicking 'View' in your dashboard table
+function openViewRecord(id) {
+    const r = localCacheData.find(x => x.id == id);
+    if (!r) return;
+    currentActiveRecord = r;
 
-            // Update text elements on PDF preview cleanly without references to agreement
-            $('#pdf-employee_name').text(r.employee_name);
-            $('#pdf-employee_number').text(r.employee_number);
-            $('#pdf-job_title').text(r.job_title);
-            $('#pdf-work_place').text(r.work_place);
-            $('#pdf-grade').text(r.grade);
-            $('#pdf-appointment_date').text(r.appointment_date ? r.appointment_date : "—");
-            
-            $('#pdf-request_type').text(r.request_type);
-            $('#pdf-study_system').text(r.study_system);
-            $('#pdf-degree').text(r.degree);
-            $('#pdf-specialization').text(r.specialization);
-            $('#pdf-study_duration').text(r.study_duration);
-            $('#pdf-study_location').text(r.study_location);
-            
-            let finalStatusText = "قيد الانتظار الإداري";
-            if(r.final_status === 'Approved') finalStatusText = "تم القبول والمصادقة النهائية للمستند ✔";
-            if(r.final_status === 'Rejected') finalStatusText = "تم الرفض إدارياً ✘";
-            $('#pdf-status').text(finalStatusText).css('color', r.final_status === 'Approved' ? 'green' : (r.final_status === 'Rejected' ? 'red' : 'orange'));
+    // Populate standard information
+    $('#pdf-employee_name').text(r.employee_name || '---');
+    $('#pdf-employee_number').text(r.employee_number || '---');
+    $('#pdf-job_title').text(r.job_title || '---');
+    $('#pdf-work_place').text(r.work_place || '---');
+    $('#pdf-grade').text(r.grade || '---');
+    $('#pdf-appointment_date').text(r.appointment_date || '---');
 
-            if (r.workplace_approval === 'without_sub') {
-                $('#pdf-chk-without').text('[✔] بدون بديل');
-                $('#pdf-chk-with').text('[ ] مع توفير البديل');
-            } else if (r.workplace_approval === 'with_sub') {
-                $('#pdf-chk-without').text('[ ] بدون بديل');
-                $('#pdf-chk-with').text('[✔] مع توفير البديل');
-            } else {
-                $('#pdf-chk-without').text('[ ]amp; بدون بديل');
-                $('#pdf-chk-with').text('[ ] مع توفير البديل');
-            }
-            $('#pdf-disapproval_reasons').text(r.disapproval_reasons ? r.disapproval_reasons : "لا يوجد أسباب رفض / تمت الموافقة.");
+    // Populate Study Info
+    $('#pdf-request_type').text(r.request_type || '---');
+    $('#pdf-study_system').text(r.study_system || '---');
+    $('#pdf-degree').text(r.degree || '---');
+    $('#pdf-specialization').text(r.specialization || '---');
+    $('#pdf-study_duration').text(r.study_duration || '---');
+    $('#pdf-study_location').text(r.study_location || '---');
 
-            $('#pdf-chk-need-yes').text(r.dept_need === 'yes' ? '[✔] يوجد حاجة' : '[ ] يوجد حاجة');
-            $('#pdf-chk-need-no').text(r.dept_need === 'no' ? '[✔] لا يوجد حاجة' : '[ ] لا يوجد حاجة');
-            $('#pdf-chk-sub-yes').text(r.dept_sub_approval === 'yes' ? '[✔] نعم' : '[ ] نعم');
-            $('#pdf-chk-sub-no').text(r.dept_sub_approval === 'no' ? '[✔] لا' : '[ ] لا');
-            $('#pdf-proposed_workplace').text(r.proposed_workplace ? r.proposed_workplace : "—");
-            $('#pdf-director_opinion').text(r.director_opinion ? r.director_opinion : "لم يتم تدوين رأي المدير بعد.");
+    // Populate Administrative sections as per the document structure
+    $('#pdf-disapproval_reasons').text(r.admin1_remarks || '---');
+    $('#pdf-proposed_workplace').text(r.proposed_workplace || '---');
+    $('#pdf-director_opinion').text(r.admin2_remarks || '---');
+    $('#pdf-gov_committee_decision').text(r.admin3_remarks || '---');
+    $('#pdf-committee_chair_signature').text(r.committee_chair_signature || '---');
 
-            $('#pdf-gov_committee_decision').text(r.gov_committee_decision ? r.gov_committee_decision : "لم يصدر قرار اللجنة الفرعية بعد.");
-            $('#pdf-committee_chair_signature').text(r.committee_chair_signature ? r.committee_chair_signature : "...........................");
-
-            switchView('pdfDocumentView');
-        }
-
+    switchView('pdfDocumentView');
+}
         function openEditRecord(id) {
             const r = localCacheData.find(x => x.id == id);
             if(!r) return;
