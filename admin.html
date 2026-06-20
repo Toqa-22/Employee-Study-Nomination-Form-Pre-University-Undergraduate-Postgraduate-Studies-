@@ -426,6 +426,7 @@
             <form id="editForm">
                 <input type="hidden" id="edit-id">
                 
+                <!-- Admin 1 Fields -->
                 <div id="admin1FormSection" style="display:none; border: 1px solid #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa;">
                     <h3 style="font-size:14px; color: var(--primary-color); border-bottom:1px solid #dee2e6; margin-bottom:10px; padding-bottom:5px;">4 : خاص بمسؤول جهة عمل المرشح (Admin 1)</h3>
                     <div class="form-group">
@@ -454,6 +455,7 @@
                     </div>
                 </div>
 
+                <!-- Admin 2 Fields -->
                 <div id="admin2FormSection" style="display:none; border: 1px solid #0d6efd; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #f4f8ff;">
                     <h3 style="font-size:14px; color: #0d6efd; border-bottom:1px solid #b6d4fe; margin-bottom:10px; padding-bottom:5px;">5 : خاص بالالدائرة المختصة بالمديرية / المستشفى (Admin 2)</h3>
                     <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; margin-bottom:12px; font-size:13px; border-radius:4px;">
@@ -500,6 +502,7 @@
                     </div>
                 </div>
 
+                <!-- Admin 3 Fields -->
                 <div id="admin3FormSection" style="display:none; border: 2px solid #198754; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #f6fbf7;">
                     <h3 style="font-size:14px; color: #198754; border-bottom:1px solid #a3cfbb; margin-bottom:10px; padding-bottom:5px;">6 : قرار لجنة البعثات الفرعية بالمحافظة والاعتماد النهائي (Admin 3)</h3>
                     <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; margin-bottom:12px; font-size:12px; border-radius:4px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -528,14 +531,16 @@
                     </div>
                 </div>
 
+                <!-- General Application Status System -->
                 <div class="general-admin-fields" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 15px;">
                     <div class="form-group" id="finalStatusGroup">
-                        <label style="color: var(--danger-color); font-weight: bold;">الحالة العامة للطلب بالنظام / Overall Status *</label>
+                        <label style="color: var(--danger-color); font-weight: bold;">الحالة العامة للطلب بالنظام / Overall Status</label>
                         <select id="edit-status" required style="border: 2px solid var(--success-color); font-weight: bold;">
                             <option value="Pending">قيد الانتظار / Pending</option>
                             <option value="Approved">مقبول ومصادق عليه / Approved</option>
                             <option value="Rejected">مرفوض نهائياً / Rejected</option>
                         </select>
+                        <p id="status-restriction-msg" style="font-size: 11px; color: #6c757d; margin-top: 5px; display: none;">🔒 الحالة مقفلة كـ Pending تلقائياً، ويتم اعتمادها فقط من قبل Admin 3.</p>
                     </div>
                 </div>
                 
@@ -639,8 +644,14 @@
                 e.preventDefault();
                 const id = $('#edit-id').val();
 
+                // enforce overall status to remain 'Pending' for admin1 and admin2
+                let finalStatus = $('#edit-status').val();
+                if (loggedInAdminRole === 'admin1' || loggedInAdminRole === 'admin2') {
+                    finalStatus = 'Pending';
+                }
+
                 const updateData = {
-                    status: $('#edit-status').val(),
+                    status: finalStatus,
                     // Admin 1 Updates
                     workplace_approval: $('input[name="workplace_approval"]:checked').val(),
                     disapproval_reasons: $('#edit-disapproval_reasons').val().trim(),
@@ -798,21 +809,29 @@
             $('#edit-admin3_recommendation').val(r.admin3_recommendation || '');
             $('#edit-admin3_remarks').val(r.admin3_remarks || '');
 
-            // Role Context Visibility
+            // Role Context Visibility & Status Control
             $('#admin1FormSection, #admin2FormSection, #admin3FormSection').hide();
             
             if (loggedInAdminRole === 'admin1') {
                 $('#admin1FormSection').show();
+                $('#edit-status').prop('disabled', true).val('Pending');
+                $('#status-restriction-msg').show();
             } else if (loggedInAdminRole === 'admin2') {
                 $('#admin2FormSection').show();
                 let txt1 = r.workplace_approval === 'without_sub' ? 'موافق بدون بديل' : (r.workplace_approval === 'with_sub' ? 'موافق مع توفير بديل' : 'لم يحدد بعد');
                 $('#displayAdmin1Answer').text(txt1);
+                $('#edit-status').prop('disabled', true).val('Pending');
+                $('#status-restriction-msg').show();
             } else if (loggedInAdminRole === 'admin3') {
                 $('#admin3FormSection').show();
                 let txt1 = r.workplace_approval === 'without_sub' ? 'بدون بديل' : (r.workplace_approval === 'with_sub' ? 'مع البديل' : 'غير محدد');
                 let txt2 = r.dept_need === 'yes' ? 'يوجد حاجة للتخصص' : 'لا يوجد حاجة';
                 $('#summaryAdmin1').text(txt1);
                 $('#summaryAdmin2').text(txt2 + ` / رأي المدير: ${r.director_opinion || 'لا يوجد'}`);
+                
+                // Admin 3 can fully update the status
+                $('#edit-status').prop('disabled', false);
+                $('#status-restriction-msg').hide();
             }
 
             $('#editModal').show();
