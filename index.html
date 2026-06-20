@@ -186,7 +186,7 @@
                     specialization: $('#specialization').val().trim(),
                     study_duration: $('#study_duration').val().trim(),
                     study_location: $('#study_location').val(),
-                    status: 'Pending'
+                    final_status: 'Pending'
                 };
 
                 const { data, error } = await supabaseClient.from('study_requests').insert([formData]);
