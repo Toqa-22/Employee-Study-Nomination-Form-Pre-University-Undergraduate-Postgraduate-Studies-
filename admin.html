@@ -858,7 +858,7 @@
                     <p><strong>رئيس لجنة البعثات الفرعية (القسم 6):</strong></p>
                     <p style="font-size:11px;">التوقيع: <span id="pdf-committee_chair_signature"
                             style="font-weight: bold; color: green;"></span></p>
-                    <p style="font-size:11px;">التاريخ والختم الرسمي: ......................</p>
+                    <p style="font-size:11px;">التاريخ والختم: ................................</p>
                 </div>
             </footer>
         </div>
@@ -1390,10 +1390,26 @@
             // =====================================
             // الحالة النهائية
             // =====================================
+            let finalStatusText = "قيد الدراسة واستكمال الإجراءات";
 
-            $('#pdf-status').text(
-                r.final_status || 'Pending'
-            );
+            if (r.final_status === "Approved") {
+                finalStatusText = "✓ تم اعتماد الطلب واستكمال كافة الموافقات";
+            }
+            else if (r.final_status === "Rejected") {
+                finalStatusText = "✗ تم رفض الطلب";
+            }
+            
+            $('#pdf-status')
+            .text(finalStatusText)
+            .css({
+                color:
+                    r.final_status === "Approved" ? "#198754" :
+                    r.final_status === "Rejected" ? "#dc3545" :
+                    "#fd7e14",
+                fontWeight: "bold",
+                fontSize: "16px"
+            });
+
 
             switchView('pdfDocumentView');
         }
