@@ -367,19 +367,29 @@
     </div>
 
     <!-- CENTRAL OPERATIONS SCRIPT ENGINE -->
-    <script>
-        // REPLACE WITH YOUR ACTUAL SUPABASE CONFIGURATION CREDS
+   <script>
+        // SYSTEM CONFIGURATION
         const CONFIG = {
             SUPABASE_URL: "https://your-project-id.supabase.co",
-            SUPABASE_ANON_KEY: "your-anon-public-key"
+            SUPABASE_ANON_KEY: "your-anon-public-key",
+            
+            // FIXED HARDCODED CREDENTIALS SET HERE
+            ADMIN_USERNAME: "admin",
+            ADMIN_PASSWORD: "Password123"
         };
 
         const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         let localCacheData = [];
         let currentActiveRecord = null;
+        let isAdminAuthenticated = false; // Local state tracker instead of cloud session
 
         // View Router Switching Engine
         function switchView(viewId) {
+            // Guard dashboard view if not locally authenticated
+            if (viewId === 'adminDashboardView' && !isAdminAuthenticated) {
+                viewId = 'adminLoginView';
+            }
+
             $('.app-view').removeClass('active-view');
             $(`#${viewId}`).addClass('active-view');
             
@@ -388,8 +398,9 @@
             if (viewId === 'adminLoginView' || viewId === 'adminDashboardView') $('#adminPortalNavBtn').addClass('active');
         }
 
-        $(document).ready(async function() {
-            checkAuthSession();
+        $(document).ready(function() {
+            // Initialize system state
+            updateNavBehavior();
 
             // Toggle dynamic text input box visibility based on selection
             $('#study_system').on('change', function() {
@@ -404,7 +415,6 @@
             $('#nominationForm').on('submit', async function(e) {
                 e.preventDefault();
 
-                // Compute exact option selected
                 let selectedSystem = $('#study_system').val();
                 if (selectedSystem === 'Other') {
                     selectedSystem = $('#study_system_other_input').val().trim();
@@ -435,16 +445,22 @@
                 }
             });
 
-            // Username Login Processing Engine
-            $('#loginForm').on('submit', async function(e) {
+            // FIXED CREDENTIALS LOGIN PROCESSING ENGINE
+            $('#loginForm').on('submit', function(e) {
                 e.preventDefault();
                 const username = $('#username').val().trim();
                 const password = $('#password').val();
-                const simulatedEmail = `${username}@nomination.local`;
 
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email: simulatedEmail, password });
-                if (error) alert('فشل الدخول: اسم المستخدم أو كلمة المرور خاطئة.');
-                else checkAuthSession();
+                // Direct local verification check
+                if (username === CONFIG.ADMIN_USERNAME && password === CONFIG.ADMIN_PASSWORD) {
+                    isAdminAuthenticated = true;
+                    updateNavBehavior();
+                    switchView('adminDashboardView');
+                    fetchDashboardData();
+                    setupRealtime();
+                } else {
+                    alert('فشل الدخول: اسم المستخدم أو كلمة المرور خاطئة. / Incorrect credentials.');
+                }
             });
 
             // Dashboard Realtime Input Filtering Watchers
@@ -483,31 +499,30 @@
             });
         });
 
-        // Dashboard Session Watchers
-        async function checkAuthSession() {
-            const session = await supabaseClient.auth.getSession();
-            if (session.data.session) {
+        // Dynamic Nav Control Switcher
+        function updateNavBehavior() {
+            if (isAdminAuthenticated) {
                 $('#adminPortalNavBtn').attr('onclick', "switchView('adminDashboardView')");
-                if ($('#adminLoginView').hasClass('active-view')) switchView('adminDashboardView');
-                fetchDashboardData();
-                setupRealtime();
             } else {
                 $('#adminPortalNavBtn').attr('onclick', "switchView('adminLoginView')");
             }
         }
 
-        async function executeLogout() {
-            await supabaseClient.auth.signOut();
-            $('#adminPortalNavBtn').attr('onclick', "switchView('adminLoginView')");
+        function executeLogout() {
+            isAdminAuthenticated = false;
+            updateNavBehavior();
+            $('#loginForm')[0].reset();
             switchView('adminLoginView');
         }
 
         async function fetchDashboardData() {
+            if (!isAdminAuthenticated) return;
             const { data, error } = await supabaseClient.from('study_requests').select('*').order('created_at', { ascending: false });
             if (!error) { localCacheData = data; applyFiltersAndRender(); }
         }
 
         function setupRealtime() {
+            if (!isAdminAuthenticated) return;
             supabaseClient.channel('unified-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'study_requests' }, () => {
                 fetchDashboardData();
             }).subscribe();
@@ -587,7 +602,8 @@
 
         async function deleteRecord(id) {
             if (confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
-                await supabaseClient.from('study_requests').delete().eq('id', id);
+                const { error } = await supabaseClient.from('study_requests').delete().eq('id', id);
+                if (error) alert(error.message);
             }
         }
 
