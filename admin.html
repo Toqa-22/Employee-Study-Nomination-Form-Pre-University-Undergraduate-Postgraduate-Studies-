@@ -1193,7 +1193,7 @@
                     updateData.admin3_approval_date =
                         $('#edit-approval_date').val() || null;
                 }
-                const current = currentActiveRecord;
+                const r = currentActiveRecord || {};
                 const statuses = {
                     admin1: updateData.admin1_status || r?.admin1_status,
                     admin2: updateData.admin2_status || r?.admin2_status,
