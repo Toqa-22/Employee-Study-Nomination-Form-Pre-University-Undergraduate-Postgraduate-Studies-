@@ -272,7 +272,10 @@
                             <th>المسمى الوظيفي</th>
                             <th>المؤهل</th>
                             <th>التخصص</th>
-                            <th>الحالة العامة</th>
+                            <th>Admin 1</th>
+                            <th>Admin 2</th>
+                            <th>Admin 3</th>
+                            <th>الحالة النهائية</th>
                             <th>تاريخ التقديم</th>
                             <th>الإجراءات</th>
                         </tr>
@@ -552,7 +555,7 @@
                     specialization: $('#specialization').val().trim(),
                     study_duration: $('#study_duration').val().trim(),
                     study_location: $('#study_location').val(),
-                    status: 'Pending'
+                    final_status:'Pending'
                 };
 
                 const { error } = await supabaseClient.from('study_requests').insert([formData]);
@@ -589,24 +592,68 @@
                 e.preventDefault();
                 const id = $('#edit-id').val();
                 
-                // Removed agreement_number and agreement_date properties completely to avoid schema mismatch
-                const updateData = {
-                    approval_date: $('#edit-approval_date').val() || null,
-                    approved_by: $('#edit-approved_by').val(),
-                    clarification: $('#edit-clarification').val(),
-                    recommendation: $('#edit-recommendation').val(),
-                    remarks: $('#edit-remarks').val(),
-                    status: $('#edit-status').val(),
-                    workplace_approval: $('input[name="workplace_approval"]:checked').val(),
-                    disapproval_reasons: $('#edit-disapproval_reasons').val().trim(),
-                    dept_need: $('input[name="dept_need"]:checked').val(),
-                    dept_sub_approval: $('input[name="dept_sub_approval"]:checked').val(),
-                    proposed_workplace: $('#edit-proposed_workplace').val().trim(),
-                    director_opinion: $('#edit-director_opinion').val().trim(),
-                    gov_committee_decision: $('#edit-gov_committee_decision').val().trim(),
-                    committee_chair_signature: $('#edit-committee_chair_signature').val().trim()
-                };
+                const updateData = {};
+                    if (loggedInAdminRole === "admin1") {
+                        updateData.admin1_status = $('#edit-status').val();
+                        updateData.admin1_approved_by = $('#edit-approved_by').val();
+                        updateData.admin1_approval_date = $('#edit-approval_date').val() || null;
+                        updateData.admin1_remarks = $('#edit-remarks').val();
+                    }
+                    
+                    if (loggedInAdminRole === "admin2") {
+                        updateData.admin2_status = $('#edit-status').val();
+                        updateData.admin2_approved_by = $('#edit-approved_by').val();
+                        updateData.admin2_approval_date = $('#edit-approval_date').val() || null;
+                        updateData.admin2_remarks = $('#edit-remarks').val();
+                    
+                    }
+                    
+                    if (loggedInAdminRole === "admin3") {
+                        updateData.admin3_status = $('#edit-status').val();
+                        updateData.admin3_approved_by = $('#edit-approved_by').val();
+                        updateData.admin3_approval_date = $('#edit-approval_date').val() || null;
+                        updateData.admin3_remarks = $('#edit-remarks').val();
+                    }
+                    
+                    /* Calculate Final Status */
+                    
+                    const admin1 = updateData.admin1_status ?? currentActiveRecord.admin1_status;
+                    const admin2 = updateData.admin2_status ?? currentActiveRecord.admin2_status;
+                    const admin3 = updateData.admin3_status ?? currentActiveRecord.admin3_status;
+                    
+                    if (
+                        admin1 === "Rejected" ||
+                        admin2 === "Rejected" ||
+                        admin3 === "Rejected"
+                    ) {
+                        updateData.final_status = "Rejected";
+                    }
+                    else if (
+                        admin1 === "Approved" &&
+                        admin2 === "Approved" &&
+                        admin3 === "Approved"
+                    ) {
+                        updateData.final_status = "Approved";
+                    }
+                    else {
+                        updateData.final_status = "Pending";
+                    }
 
+                let statuses = [
+                    updateData.admin1_status ?? currentActiveRecord.admin1_status,
+                    updateData.admin2_status ?? currentActiveRecord.admin2_status,
+                    updateData.admin3_status ?? currentActiveRecord.admin3_status
+                    ];
+                    
+                    if(statuses.includes("Rejected"))
+                        updateData.final_status="Rejected";
+                    
+                    else if(statuses.every(x=>x=="Approved"))
+                        updateData.final_status="Approved";
+                    
+                    else
+                        updateData.final_status="Pending";
+                                        
                 const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
                 if (error) alert(error.message);
                 else {
@@ -649,9 +696,9 @@
 
         function calculateStats() {
             $('#stat-total').text(localCacheData.length);
-            $('#stat-pending').text(localCacheData.filter(r => r.status === 'Pending').length);
-            $('#stat-approved').text(localCacheData.filter(r => r.status === 'Approved').length);
-            $('#stat-rejected').text(localCacheData.filter(r => r.status === 'Rejected').length);
+            $('#stat-pending').text(localCacheData.filter(r => r.final_status === 'Pending').length);
+            $('#stat-approved').text(localCacheData.filter(r => r.final_status === 'Approved').length);
+            $('#stat-rejected').text(localCacheData.filter(r => r.final_status === 'Rejected').length);
         }
 
         function applyFiltersAndRender() {
@@ -660,7 +707,7 @@
             
             let filtered = localCacheData;
             if (filterStatus !== 'All') {
-                filtered = filtered.filter(r => r.status === filterStatus);
+                filtered = filtered.filter(r => r.final_status === filterStatus);
             }
             if (query) {
                 filtered = filtered.filter(r => 
@@ -679,8 +726,8 @@
             filtered.forEach((r, idx) => {
                 let badgeClass = "pending";
                 let arabicStatus = "قيد الانتظار";
-                if(r.status === 'Approved') { badgeClass = "approved"; arabicStatus = "مقبول"; }
-                if(r.status === 'Rejected') { badgeClass = "rejected"; arabicStatus = "مرفوض"; }
+                if(r.final_status === 'Approved') { badgeClass = "approved"; arabicStatus = "مقبول"; }
+                if(r.final_status === 'Rejected') { badgeClass = "rejected"; arabicStatus = "مرفوض"; }
 
                 const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('ar-OM') : '—';
 
@@ -692,7 +739,14 @@
                         <td>${r.job_title}</td>
                         <td>${r.degree}</td>
                         <td>${r.specialization}</td>
-                        <td><span class="status-badge ${badgeClass}">${arabicStatus}</span></td>
+                        <td>${r.admin1_status}</td>
+                        <td>${r.admin2_status}</td>
+                        <td>${r.admin3_status}</td>
+                        <td>
+                        <span class="status-badge ${badgeClass}">
+                        ${arabicStatus}
+                        </span>
+                        </td>
                         <td>${dateStr}</td>
                         <td>
                             <button class="btn-action btn-view" onclick="openViewRecord('${r.id}')">عرض</button>
@@ -731,9 +785,9 @@
             $('#pdf-remarks').text(r.remarks ? r.remarks : "—");
             
             let finalStatusText = "قيد الانتظار الإداري";
-            if(r.status === 'Approved') finalStatusText = "تم القبول والمصادقة النهائية للمستند ✔";
-            if(r.status === 'Rejected') finalStatusText = "تم الرفض إدارياً ✘";
-            $('#pdf-status').text(finalStatusText).css('color', r.status === 'Approved' ? 'green' : (r.status === 'Rejected' ? 'red' : 'orange'));
+            if(r.final_status === 'Approved') finalStatusText = "تم القبول والمصادقة النهائية للمستند ✔";
+            if(r.final_status === 'Rejected') finalStatusText = "تم الرفض إدارياً ✘";
+            $('#pdf-status').text(finalStatusText).css('color', r.final_status === 'Approved' ? 'green' : (r.final_status === 'Rejected' ? 'red' : 'orange'));
 
             if (r.workplace_approval === 'without_sub') {
                 $('#pdf-chk-without').text('[✔] بدون بديل');
@@ -772,7 +826,14 @@
             $('#edit-clarification').val(r.clarification || '');
             $('#edit-recommendation').val(r.recommendation || '');
             $('#edit-remarks').val(r.remarks || '');
-            $('#edit-status').val(r.status || 'Pending');
+            
+            if(loggedInAdminRole=="admin1"){
+                $('#edit-status').val(r.admin1_status);
+                $('#edit-approved_by').val(r.admin1_approved_by);
+                $('#edit-approval_date').val(r.admin1_approval_date);
+                $('#edit-remarks').val(r.admin1_remarks);
+                
+                }
 
             $(`input[name="workplace_approval"][value="${r.workplace_approval || 'none'}"]`).prop('checked', true);
             $('#edit-disapproval_reasons').val(r.disapproval_reasons || '');
