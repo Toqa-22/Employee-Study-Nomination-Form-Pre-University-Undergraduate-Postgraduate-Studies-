@@ -1194,6 +1194,21 @@
                         $('#edit-approval_date').val() || null;
                 }
 
+                // منطق الحالة النهائية
+                const a1 = updateData.admin1_status || r.admin1_status;
+                const a2 = updateData.admin2_status || r.admin2_status;
+                const a3 = updateData.admin3_status || r.admin3_status;
+
+                if (a1 === "Rejected" || a2 === "Rejected" || a3 === "Rejected") {
+                    updateData.final_status = "Rejected";
+                } 
+                else if (a1 === "Approved" && a2 === "Approved" && a3 === "Approved") {
+                    updateData.final_status = "Approved";
+                } 
+                else {
+                    updateData.final_status = "Pending";
+}
+
                 // 2. تحديث الحالة النهائية
                 // ملاحظة: المنطق البرمجي المكتوب سابقاً في الكود سيقوم بحساب الحالة النهائية تلقائياً
 
