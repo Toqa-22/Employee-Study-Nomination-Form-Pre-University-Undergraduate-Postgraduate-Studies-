@@ -1171,6 +1171,9 @@
 
                     updateData.admin2_approval_date =
                         $('#edit-approval_date').val() || null;
+                    if (updateData.admin2_status === "Rejected") {
+                        updateData.final_status = "Rejected";
+                    }
                 }
                 else if (loggedInAdminRole === "admin3") {
                     const file = $('#admin3Signature')[0].files[0]; if (file) { updateData.admin3_signature_url = await uploadSignature(file, 'admin3'); }
