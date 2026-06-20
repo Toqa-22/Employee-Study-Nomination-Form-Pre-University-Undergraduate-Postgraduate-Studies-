@@ -372,13 +372,13 @@
         .a4-page-container {
             width: 210mm;
             min-height: 297mm;
-        
+
             margin: auto;
             padding: 12mm;
-        
+
             background: #fff;
             color: #000;
-        
+
             box-sizing: border-box;
             overflow: hidden;
         }
@@ -476,11 +476,12 @@
                 top: 0;
                 width: 100%;
             }
+
             @page {
                 size: A4;
                 margin: 5mm;
             }
-            
+
             .a4-page-container {
                 width: 100%;
                 min-height: auto;
@@ -488,6 +489,7 @@
                 border: none;
             }
         }
+
         .pdf-workplace-section,
         .form-table-layout,
         .pdf-signatures-section {
@@ -510,7 +512,8 @@
 
     <main id="employeeFormView" class="app-view active-view">
         <div class="view-container">
-            <h2 style="text-align: center; margin-bottom: 20px;">استمارة ترشيح للدراسات (دون الجامعية / الجامعية / العليا)</h2>
+            <h2 style="text-align: center; margin-bottom: 20px;">استمارة ترشيح للدراسات (دون الجامعية / الجامعية /
+                العليا)</h2>
             <form id="nominationForm">
                 <fieldset>
                     <legend>بيانات الموظف / Employee Information</legend>
@@ -863,19 +866,18 @@
             <footer class="pdf-signatures-section">
                 <div class="sig-block">
                     <p><strong>توقيع المسؤول المباشر (القسم 4):</strong></p>
-                    <p style="font-size:11px;">التوقيع: ...........................................</p>
-                    <p style="font-size:11px;">التاريخ والختم: ................................</p>
+                    <p style="font-size:11px;">التوقيع:</p>
+                    <img id="pdf-admin1-signature" style="max-height:70px">
                 </div>
                 <div class="sig-block" style="border-right: 1px dashed #cbd5e1; border-left: 1px dashed #cbd5e1;">
                     <p><strong>مدير الدائرة / المستشفى (القسم 5):</strong></p>
                     <p style="font-size:11px;">التوقيع: ........................................</p>
-                    <p style="font-size:11px;">التاريخ والختم: ................................</p>
+                    <img id="pdf-admin2-signature" style="max-height:70px">
                 </div>
                 <div class="sig-block">
                     <p><strong>رئيس لجنة البعثات الفرعية (القسم 6):</strong></p>
-                    <p style="font-size:11px;">التوقيع: ........................................<span id="pdf-committee_chair_signature"
-                            style="font-weight: bold; color: green;"></span></p>
-                    <p style="font-size:11px;">التاريخ والختم: ................................</p>
+                    <p style="font-size:11px;">التوقيع: ........................................</p>
+                    <img id="pdf-admin3-signature" style="max-height:70px">
                 </div>
             </footer>
         </div>
@@ -915,6 +917,9 @@
                         <textarea id="edit-disapproval_reasons" rows="2"
                             placeholder="اكتب أسباب الرفض هنا..."></textarea>
                     </div>
+                    <div class="form-group"> <label>رفع التوقيع الرسمي</label> <input type="file" id="admin1Signature"
+                            accept="image/png,image/jpeg"> </div>
+
                 </div>
 
                 <div id="admin2FormSection"
@@ -954,6 +959,8 @@
                         <label>4. رأي مدير الدائرة / المستشفى:</label>
                         <textarea id="edit-director_opinion" rows="2"></textarea>
                     </div>
+                    <div class="form-group"> <label>رفع التوقيع الرسمي</label> <input type="file" id="admin2Signature"
+                            accept="image/png,image/jpeg"> </div>
                 </div>
 
                 <div id="admin3FormSection"
@@ -979,6 +986,8 @@
                         <label>اسم/توقيع رئيس اللجنة المعتمد:</label>
                         <input type="text" id="edit-committee_chair_signature" placeholder="مثال: د. أحمد بن محمد">
                     </div>
+                    <div class="form-group"> <label>رفع التوقيع الرسمي</label> <input type="file" id="admin3Signature"
+                            accept="image/png,image/jpeg"> </div>
                 </div>
 
                 <div class="general-admin-fields"
@@ -1033,6 +1042,8 @@
         let localCacheData = [];
         let currentActiveRecord = null;
         let loggedInAdminRole = null;
+
+        async function uploadSignature(file, folder) { if (!file) return null; const fileName = `${folder}_${Date.now()}_${file.name}`; const { error } = await supabaseClient.storage.from('signatures').upload(fileName, file); if (error) throw error; const { data } = supabaseClient.storage.from('signatures').getPublicUrl(fileName); return data.publicUrl; }
 
         function switchView(viewId) {
             if (viewId === 'adminDashboardView' && !loggedInAdminRole) {
@@ -1114,6 +1125,8 @@
                 // 1. تحديث الحقول الخاصة بكل دور
                 if (loggedInAdminRole === "admin1") {
 
+                    const file = $('#admin1Signature')[0].files[0]; if (file) { updateData.admin1_signature_url = await uploadSignature(file, 'admin1'); }
+
                     updateData.workplace_approval =
                         $('input[name="workplace_approval"]:checked').val();
 
@@ -1133,6 +1146,8 @@
                         $('#edit-approval_date').val() || null;
                 }
                 else if (loggedInAdminRole === "admin2") {
+                    const file = $('#admin2Signature')[0].files[0]; if (file) { updateData.admin2_signature_url = await uploadSignature(file, 'admin2'); }
+
 
                     updateData.dept_need =
                         $('input[name="dept_need"]:checked').val();
@@ -1159,6 +1174,7 @@
                         $('#edit-approval_date').val() || null;
                 }
                 else if (loggedInAdminRole === "admin3") {
+                    const file = $('#admin3Signature')[0].files[0]; if (file) { updateData.admin3_signature_url = await uploadSignature(file, 'admin3'); }
 
                     updateData.gov_committee_decision =
                         $('#edit-gov_committee_decision').val();
@@ -1197,33 +1213,33 @@
             $('#downloadPdfBtn').on('click', function () {
                 const element = document.getElementById('pdfPrintTargetArea');
                 html2pdf().set({
-    margin: [5,5,5,5],
+                    margin: [5, 5, 5, 5],
 
-    filename:
-    `Nomination-Document-${currentActiveRecord.employee_number}.pdf`,
+                    filename:
+                        `Nomination-Document-${currentActiveRecord.employee_number}.pdf`,
 
-    image: {
-        type: 'jpeg',
-        quality: 1
-    },
+                    image: {
+                        type: 'jpeg',
+                        quality: 1
+                    },
 
-    html2canvas: {
-        scale: 4,
-        useCORS: true,
-        letterRendering: true,
-        scrollY: 0
-    },
+                    html2canvas: {
+                        scale: 4,
+                        useCORS: true,
+                        letterRendering: true,
+                        scrollY: 0
+                    },
 
-    jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    },
 
-    pagebreak: {
-        mode: ['avoid-all','css','legacy']
-    }
-}).from(element).save();
+                    pagebreak: {
+                        mode: ['avoid-all', 'css', 'legacy']
+                    }
+                }).from(element).save();
             });
         });
 
@@ -1436,19 +1452,19 @@
             else if (r.final_status === "Rejected") {
                 finalStatusText = "✗ تم رفض الطلب";
             }
-            
+
             $('#pdf-status')
-            .text(finalStatusText)
-            .css({
-                color:
-                    r.final_status === "Approved" ? "#198754" :
-                    r.final_status === "Rejected" ? "#dc3545" :
-                    "#fd7e14",
-                fontWeight: "bold",
-                fontSize: "16px"
-            });
+                .text(finalStatusText)
+                .css({
+                    color:
+                        r.final_status === "Approved" ? "#198754" :
+                            r.final_status === "Rejected" ? "#dc3545" :
+                                "#fd7e14",
+                    fontWeight: "bold",
+                    fontSize: "16px"
+                });
 
-
+            $('#pdf-admin1-signature').attr('src', r.admin1_signature_url || ''); $('#pdf-admin2-signature').attr('src', r.admin2_signature_url || ''); $('#pdf-admin3-signature').attr('src', r.admin3_signature_url || '');
             switchView('pdfDocumentView');
         }
         function openEditRecord(id) {
@@ -1522,6 +1538,26 @@
         function executeLogout() {
             loggedInAdminRole = null;
             switchView('employeeFormView');
+        }
+        async function uploadSignature(file, folder) {
+            if (!file) return null;
+
+            const fileName =
+                `${folder}_${Date.now()}_${file.name}`;
+
+            const { error } =
+                await supabaseClient.storage
+                    .from('signatures')
+                    .upload(fileName, file);
+
+            if (error) throw error;
+
+            const { data } =
+                supabaseClient.storage
+                    .from('signatures')
+                    .getPublicUrl(fileName);
+
+            return data.publicUrl;
         }
     </script>
 </body>
