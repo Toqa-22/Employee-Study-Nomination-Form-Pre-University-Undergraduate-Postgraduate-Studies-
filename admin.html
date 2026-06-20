@@ -370,17 +370,17 @@
 
         /* Document Blueprint Printing Framework (A4) */
         .a4-page-container {
-            background: white;
             width: 210mm;
             min-height: 297mm;
-            margin: 20px auto;
-            padding: 30px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        
+            margin: auto;
+            padding: 12mm;
+        
+            background: #fff;
             color: #000;
+        
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .pdf-header {
@@ -476,6 +476,23 @@
                 top: 0;
                 width: 100%;
             }
+            @page {
+                size: A4;
+                margin: 5mm;
+            }
+            
+            .a4-page-container {
+                width: 100%;
+                min-height: auto;
+                box-shadow: none;
+                border: none;
+            }
+        }
+        .pdf-workplace-section,
+        .form-table-layout,
+        .pdf-signatures-section {
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
     </style>
 </head>
@@ -1180,12 +1197,33 @@
             $('#downloadPdfBtn').on('click', function () {
                 const element = document.getElementById('pdfPrintTargetArea');
                 html2pdf().set({
-                    margin: 8,
-                    filename: `Nomination-Document-${currentActiveRecord.employee_number}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                }).from(element).save();
+    margin: [5,5,5,5],
+
+    filename:
+    `Nomination-Document-${currentActiveRecord.employee_number}.pdf`,
+
+    image: {
+        type: 'jpeg',
+        quality: 1
+    },
+
+    html2canvas: {
+        scale: 4,
+        useCORS: true,
+        letterRendering: true,
+        scrollY: 0
+    },
+
+    jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+    },
+
+    pagebreak: {
+        mode: ['avoid-all','css','legacy']
+    }
+}).from(element).save();
             });
         });
 
