@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة التحكم والمشرف | Admin Portal Control Panel</title>
+    <title>بوابة التحكم والمشرفين | Multi-Admin Portal Panel</title>
     
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -86,14 +86,14 @@
         .a4-page-container { background: white; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; color: #000;}
         .pdf-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double var(--dark-neutral); padding-bottom: 15px; margin-bottom: 20px; }
         .header-title { text-align: center; flex-grow: 1; }
-        .form-table-layout { width: 100%; margin-bottom: 20px; border: 1px solid #cbd5e1;}
-        .form-table-layout th { background: #f1f3f5; color: #000; font-size: 14px; text-align: right; padding: 10px; border: 1px solid #cbd5e1; }
+        .form-table-layout { width: 100%; margin-bottom: 15px; border: 1px solid #cbd5e1;}
+        .form-table-layout th { background: #f1f3f5; color: #000; font-size: 14px; text-align: right; padding: 8px; border: 1px solid #cbd5e1; }
         .form-table-layout td { border: 1px solid #cbd5e1; font-size: 13px; padding: 8px; vertical-align: top; }
         .lbl-col { font-weight: bold; background-color: #f8fafc; width: 25%; }
         
-        .pdf-workplace-section { border: 1px solid #cbd5e1; border-top: none; padding: 15px; margin-top: -20px; margin-bottom: 20px; font-size: 13px; text-align: right; }
-        .pdf-signatures-section { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; }
-        .sig-block { width: 45%; text-align: center; font-size: 13px; line-height: 1.8; }
+        .pdf-workplace-section { border: 1px solid #cbd5e1; padding: 12px; margin-bottom: 12px; font-size: 13px; text-align: right; }
+        .pdf-signatures-section { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 15px; border-top: 1px solid #cbd5e1; }
+        .sig-block { width: 48%; text-align: center; font-size: 13px; line-height: 1.8; }
 
         @media (max-width: 768px) {
             .view-grid, .controls-bar { flex-direction: column; }
@@ -109,26 +109,29 @@
 <body>
 
     <header class="system-nav">
-        <h2>نظام ترشيح الدراسات العليا - لوحة المشرف</h2>
+        <h2>نظام ترشيح الدراسات العليا - بوابة الإدارة المشتركة</h2>
         <div class="nav-links">
             <a href="index.html" class="nav-btn">استمارة الموظف / Form</a>
-            <a href="admin.html" class="nav-btn active" id="adminPortalNavBtn">بوابة المشرف / Admin</a>
+            <a href="admin.html" class="nav-btn active" id="adminPortalNavBtn">بوابة المشرفين / Admin Hub</a>
         </div>
     </header>
 
     <main id="adminLoginView" class="app-view active-view">
         <div class="view-container small-container">
-            <h2 style="text-align: center; margin-bottom: 20px;">تسجيل دخول المشرف / Admin Login</h2>
+            <h2 style="text-align: center; margin-bottom: 20px;">تسجيل دخول النظام الإداري</h2>
+            <div style="text-align: center; background: #e3faf2; color: #0f5132; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: bold;">
+                الرجاء تسجيل الدخول بحساب المسؤول المخصص لك (Admin1 أو Admin2)
+            </div>
             <form id="loginForm">
                 <div class="form-group">
                     <label>اسم المستخدم / Username</label>
-                    <input type="text" id="username" required placeholder="Username">
+                    <input type="text" id="username" required placeholder="admin1 أو admin2">
                 </div>
                 <div class="form-group">
                     <label>كلمة المرور / Password</label>
                     <input type="password" id="password" required placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-submit" style="width: 100%;">تسجيل الدخول / Login</button>
+                <button type="submit" class="btn-submit" style="width: 100%;">تسجيل الدخول والنظام / Login</button>
             </form>
         </div>
     </main>
@@ -136,8 +139,11 @@
     <main id="adminDashboardView" class="app-view">
         <div class="view-container" style="max-width: 100%;">
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>لوحة التحكم للمشرف / Admin Dashboard Panel</h2>
-                <button onclick="executeLogout()" class="btn-reset">خروج / Logout</button>
+                <div>
+                    <h2>لوحة التحكم والمتابعة / Control Dashboard</h2>
+                    <p style="font-size: 14px; margin-top: 5px;">نوع الصلاحية الحالي: <span id="currentRoleBadge" style="background: #212529; color:#fff; padding:3px 8px; border-radius:4px; font-weight: bold;"></span></p>
+                </div>
+                <button onclick="executeLogout()" class="btn-reset">خروج من النظام / Logout</button>
             </header>
 
             <section class="stats-grid">
@@ -165,11 +171,11 @@
                             <th>اسم الموظف</th>
                             <th>الرقم الوظيفي</th>
                             <th>المسمى الوظيفي</th>
-                            <th>المؤهل</th>
+                            <th>نوع الطلب</th>
                             <th>التخصص</th>
-                            <th>الحالة</th>
+                            <th>الحالة العامة</th>
                             <th>تاريخ التقديم</th>
-                            <th>الإجراءات</th>
+                            <th>الإجراءات المتاحة</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -190,7 +196,7 @@
                 <header class="pdf-header">
                     <div class="header-title">
                         <h1>استمارة ترشيح للدراسة</h1>
-                        <h2 style="font-size: 16px; font-weight: normal; margin-top: 5px;">Official Study Nomination Document</h2>
+                        <h2 style="font-size: 15px; font-weight: normal; margin-top: 5px;">Official Study Nomination Document</h2>
                     </div>
                 </header>
 
@@ -210,42 +216,65 @@
                         <tr><td class="lbl-col">مدة الدراسة:</td><td id="pdf-study_duration"></td><td class="lbl-col">مكان الدراسة:</td><td id="pdf-study_location"></td></tr>
                     </tbody>
 
-                    <thead><tr><th colspan="4">3 : الاعتمادات والاتفاقية الإدارية / Administrative Information</th></tr></thead>
+                    <thead><tr><th colspan="4">3 : الاعتمادات والاتفاقية الإدارية العامة</th></tr></thead>
                     <tbody>
                         <tr><td class="lbl-col">رقم الاتفاقية:</td><td id="pdf-agreement_number"></td><td class="lbl-col">تاريخ الاتفاقية:</td><td id="pdf-agreement_date"></td></tr>
-                        <tr><td class="lbl-col">تاريخ الموافقة:</td><td id="pdf-approval_date"></td><td class="lbl-col">المعتمد المسؤول:</td><td id="pdf-approved_by"></td></tr>
+                        <tr><td class="lbl-col">تاريخ الموافقة العامة:</td><td id="pdf-approval_date"></td><td class="lbl-col">المعتمد العام المسؤول:</td><td id="pdf-approved_by"></td></tr>
                         <tr><td class="lbl-col">توضيحات إضافية:</td><td id="pdf-clarification" colspan="3"></td></tr>
-                        <tr><td class="lbl-col">توصية اللجنة:</td><td id="pdf-recommendation" colspan="3"></td></tr>
-                        <tr><td class="lbl-col">ملاحظات:</td><td id="pdf-remarks" colspan="3"></td></tr>
-                        <tr><td class="lbl-col">حالة المستند:</td><td id="pdf-status" colspan="3" style="font-weight: bold;"></td></tr>
+                        <tr><td class="lbl-col">توصية اللجنة العامة:</td><td id="pdf-recommendation" colspan="3"></td></tr>
+                        <tr><td class="lbl-col">ملاحظات عامة:</td><td id="pdf-remarks" colspan="3"></td></tr>
+                        <tr><td class="lbl-col">الحالة النهائية للمستند:</td><td id="pdf-status" colspan="3" style="font-weight: bold; color: blue;"></td></tr>
                     </tbody>
                 </table>
 
                 <div class="pdf-workplace-section">
-                    <h3 style="border-bottom: 1px dashed #cbd5e1; padding-bottom: 5px; margin-bottom: 10px;">4 : لاستعمال جهة عمل المرشح :</h3>
-                    <div style="margin-bottom: 10px;">
-                        <strong>أوافق :</strong> &nbsp;&nbsp; 
-                        <span id="pdf-chk-without">[ ] بدون بديل</span> &nbsp;&nbsp;&nbsp;&nbsp; 
-                        <span id="pdf-chk-with">[ ] مع توفير البديل</span>
+                    <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 8px; font-size:14px; background:#f8fafc; padding:4px;">4 : لاستعمال جهة عمل المرشح (إدخال المسؤول الأول):</h3>
+                    <div style="margin-bottom: 5px;">
+                        <strong>حالة الموافقة:</strong> &nbsp;&nbsp; 
+                        <span id="pdf-chk-without">[ ] أوافق (بدون بديل)</span> &nbsp;&nbsp;&nbsp;&nbsp; 
+                        <span id="pdf-chk-with">[ ] أوافق (مع توفير البديل)</span>
                     </div>
-                    <div style="margin-bottom: 12px; margin-top: 10px;">
-                        <strong>لا أوافق على الطلب لهذه الدراسة للأسباب التالية :</strong>
-                        <p id="pdf-disapproval_reasons" style="padding: 8px; border: 1px dotted #cbd5e1; background: #fafafa; margin-top: 5px; min-height: 45px;"></p>
+                    <div style="margin-top: 5px;">
+                        <strong>أسباب عدم الموافقة (إن وجدت):</strong>
+                        <p id="pdf-disapproval_reasons" style="padding: 5px; border: 1px dashed #cbd5e1; background: #fafafa; margin-top: 3px; min-height: 30px;"></p>
+                    </div>
+                </div>
+
+                <div class="pdf-workplace-section" style="border-color: #0d6efd;">
+                    <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin-bottom: 8px; font-size:14px; background:#e7f1ff; padding:4px;">5 : لاستعمال الدائرة المختصة بالمديرية / المستشفى (إدخال المسؤول الثاني):</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                        <div>
+                            <strong>1. الحاجة للتخصص:</strong> &nbsp;&nbsp;
+                            <span id="pdf-chk-need-yes">[ ] يوجد حاجة</span> &nbsp;&nbsp;
+                            <span id="pdf-chk-need-no">[ ] لا يوجد حاجة</span>
+                        </div>
+                        <div>
+                            <strong>2. الموافقة على توفير البديل:</strong> &nbsp;&nbsp;
+                            <span id="pdf-chk-sub-yes">[ ] نعم</span> &nbsp;&nbsp;
+                            <span id="pdf-chk-sub-no">[ ] لا</span>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 5px;">
+                        <strong>3. المكان المقترح للعمل بعد التخرج:</strong>
+                        <span id="pdf-proposed_workplace" style="text-decoration: underline; font-weight: bold; margin-right: 5px;"></span>
+                    </div>
+                    <div>
+                        <strong>4. رأي مدير الدائرة / المستشفى:</strong>
+                        <p id="pdf-director_opinion" style="padding: 5px; border: 1px dashed #cbd5e1; background: #fdfdfd; margin-top: 3px; min-height: 35px;"></p>
                     </div>
                 </div>
             </div>
 
             <footer class="pdf-signatures-section">
                 <div class="sig-block">
-                    <p><strong>اسم المسؤول المباشر:</strong> ...................................................</p>
-                    <p><strong>توقيع المسؤول المباشر:</strong> ...................................................</p>
+                    <p style="text-align: right;"><strong>اعتماد جهة عمل المرشح (القسم 4):</strong></p>
+                    <p style="text-align: right; font-size:12px;">اسم وتوقيع المسؤول المباشر: ...........................................</p>
+                    <p style="text-align: right; font-size:12px;">التاريخ والختم: ...........................................................</p>
                 </div>
-                <div class="sig-block">
-                    <p><strong>توقيع مسؤول المؤسسة / القسم:</strong> ...................................................</p>
-                    <p style="text-align: right; padding-right: 30px; display: flex; justify-content: space-between; margin-top: 5px;">
-                        <span><strong>التاريخ:</strong> .........................</span>
-                        <span><strong>الختم:</strong> .........................</span>
-                    </p>
+                <div class="sig-block" style="border-right: 1px dashed #cbd5e1; padding-right: 15px;">
+                    <p style="text-align: right;"><strong>اعتماد الدائرة المختصة بالمديرية (القسم 5):</strong></p>
+                    <p style="text-align: right; font-size:12px;">توقيع مدير الدائرة / المستشفى: .........................................</p>
+                    <p style="text-align: right; font-size:12px;">التاريخ والختم المشترك: .................................................</p>
                 </div>
             </footer>
         </div>
@@ -254,172 +283,233 @@
     <div id="viewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="$('#viewModal').hide()">&times;</span>
-            <h2>تفاصيل الطلب الكاملة / Application Details</h2>
+            <h2>تفاصيل الطلب الكاملة المحدثة بقاعدة البيانات</h2>
             <div id="viewDetailsBody"></div>
         </div>
     </div>
 
     <div id="editModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="border-top: 8px solid var(--primary-color);">
             <span class="close-modal" onclick="$('#editModal').hide()">&times;</span>
-            <h2>تعديل البيانات الإدارية والاعتماد / Administrative Action</h2>
+            <h2 id="modalActionTitle">تعديل طلب الترشيح</h2>
             <form id="editForm">
                 <input type="hidden" id="edit-id">
                 
-                <h3 style="font-size:15px; color: var(--primary-color); border-bottom:1px solid #eee; margin:15px 0 10px 0; padding-bottom:5px;">3 : الاتفاقية والاعتماد</h3>
-                <div class="form-group"><label>رقم الاتفاقية / Agreement Number</label><input type="text" id="edit-agreement_number"></div>
-                <div class="form-group"><label>تاريخ الاتفاقية / Agreement Date</label><input type="date" id="edit-agreement_date"></div>
-                <div class="form-group"><label>تاريخ الاعتماد / Approval Date</label><input type="date" id="edit-approval_date"></div>
-                <div class="form-group"><label>المعتمد المسؤول / Approved By</label><input type="text" id="edit-approved_by"></div>
-                <div class="form-group"><label>التوضيحات / Clarification</label><textarea id="edit-clarification"></textarea></div>
-                <div class="form-group"><label>التوصية / Recommendation</label><textarea id="edit-recommendation"></textarea></div>
-                <div class="form-group"><label>الملاحظات / Remarks</label><textarea id="edit-remarks"></textarea></div>
-                
-                <h3 style="font-size:15px; color: var(--primary-color); border-bottom:1px solid #eee; margin:20px 0 10px 0; padding-bottom:5px;">4 : لاستعمال جهة عمل المرشح</h3>
-                <div class="form-group">
-                    <label>حالة الموافقة الداخلية (جهة العمل) / Workplace Choice</label>
-                    <div class="radio-inline-group">
-                        <label><input type="radio" name="workplace_approval" value="none" checked> غير محدد / None</label>
-                        <label><input type="radio" name="workplace_approval" value="without_sub"> أوافق (بدون بديل)</label>
-                        <label><input type="radio" name="workplace_approval" value="with_sub"> أوافق (مع توفير البديل)</label>
+                <div class="general-admin-fields" style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+                    <h4 style="font-size:14px; margin-bottom:8px; color:#555;">الاعتمادات العامة المشتركة</h4>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div class="form-group"><label>رقم الاتفاقية</label><input type="text" id="edit-agreement_number"></div>
+                        <div class="form-group"><label>تاريخ الاتفاقية</label><input type="date" id="edit-agreement_date"></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>أسباب عدم الموافقة (إن وجدت) / Disapproval Reasons</label>
-                    <textarea id="edit-disapproval_reasons" placeholder="اكتب أسباب عدم الموافقة هنا..."></textarea>
+
+                <div id="admin1FormSection" style="display:none; border: 1px solid #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa;">
+                    <h3 style="font-size:15px; color: var(--primary-color); border-bottom:1px solid #dee2e6; margin-bottom:10px; padding-bottom:5px;">4 : خاص بمسؤول جهة عمل المرشح (Admin 1)</h3>
+                    <div class="form-group">
+                        <label>قرار أوافق / الموافقة الداخلية:</label>
+                        <div class="radio-inline-group">
+                            <label><input type="radio" name="workplace_approval" value="none" checked> غير محدد</label>
+                            <label><input type="radio" name="workplace_approval" value="without_sub"> بدون بديل</label>
+                            <label><input type="radio" name="workplace_approval" value="with_sub"> مع توفير البديل</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>لا أوافق للأسباب التالية (تُترك فارغة في حال القبول):</label>
+                        <textarea id="edit-disapproval_reasons" rows="2" placeholder="اكتب أسباب عدم الموافقة..."></textarea>
+                    </div>
                 </div>
 
-                <div class="form-group" style="margin-top:20px;">
-                    <label>حالة الطلب الإدارية العامة / General Decision Status *</label>
-                    <select id="edit-status" required>
+                <div id="admin2FormSection" style="display:none; border: 2px solid #0d6efd; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #f4f8ff;">
+                    <h3 style="font-size:15px; color: #0d6efd; border-bottom:1px solid #b6d4fe; margin-bottom:10px; padding-bottom:5px;">5 : خاص بالدائرة المختصة بالمديرية / المستشفى (Admin 2)</h3>
+                    
+                    <div style="background:#fff; padding:8px; border:1px solid #cbd5e1; margin-bottom:12px; font-size:13px; border-radius:4px;">
+                        <strong style="color:var(--danger-color)">رد وقرار جهة العمل السابقة (Admin 1):</strong>
+                        <p id="displayAdmin1Answer" style="margin-top:3px; font-weight:bold;"></p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                        <div class="form-group">
+                            <label>1. الحاجة للتخصص:</label>
+                            <div class="radio-inline-group">
+                                <label><input type="radio" name="dept_need" value="none" checked> غير محدد</label>
+                                <label><input type="radio" name="dept_need" value="yes"> يوجد حاجة</label>
+                                <label><input type="radio" name="dept_need" value="no"> لا يوجد حاجة</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>2. الموافقة على توفير البديل:</label>
+                            <div class="radio-inline-group">
+                                <label><input type="radio" name="dept_sub_approval" value="none" checked> غير محدد</label>
+                                <label><input type="radio" name="dept_sub_approval" value="yes"> نعم</label>
+                                <label><input type="radio" name="dept_sub_approval" value="no"> لا</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>3. المكان المقترح للعمل بعد التخرج:</label>
+                        <input type="text" id="edit-proposed_workplace" placeholder="أدخل اسم القسم أو المستشفى المقترح">
+                    </div>
+                    <div class="form-group">
+                        <label>4. رأي مدير الدائرة / المستشفى بالتفصيل:</label>
+                        <textarea id="edit-director_opinion" rows="2" placeholder="اكتب مرئيات ورأي الإدارة هنا..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:15px;">
+                    <label>تحديث الاعتماد النهائي والقرار المسؤول العام للطلب *</label>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <input type="text" id="edit-approved_by" placeholder="اسم المسؤول عن الاعتماد">
+                        <input type="date" id="edit-approval_date">
+                    </div>
+                    <textarea id="edit-clarification" placeholder="توضيحات وتوصيات اللجنة الإضافية..." style="margin-bottom:10px;"></textarea>
+                    <select id="edit-status" required style="border: 2px solid #198754; font-weight: bold;">
                         <option value="Pending">قيد الانتظار / Pending</option>
-                        <option value="Approved">مقبول / Approved</option>
-                        <option value="Rejected">مرفوض / Rejected</option>
+                        <option value="Approved">مقبول ومصادق عليه / Approved</option>
+                        <option value="Rejected">مرفوض إدارياً / Rejected</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-submit" style="width: 100%; margin-top: 10px;">حفظ التعديلات / Save Action</button>
+                
+                <button type="submit" class="btn-submit" style="width: 100%; margin-top: 10px; font-size: 16px;">حفظ وإرسال التحديثات السحابية / Save Action</button>
             </form>
         </div>
     </div>
 
     <script>
+        // إعدادات وبيانات النظام والربط السحابي بقاعدة البيانات 
         const CONFIG = {
-            SUPABASE_URL: "https://gljhfbrtzuwenrfbdwtk.supabase.co",
-            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsamhmYnJ0enV3ZW5yZmJkd3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjYyODYsImV4cCI6MjA5NzU0MjI4Nn0.PIzAVBIsBgUQL0sykzYlEZVk-JccYGLvbztF156cJjk",
-            ADMIN_USERNAME: "admin",
-            ADMIN_PASSWORD: "12345"
+            SUPABASE_URL: "https://gljhfbrtzuwenrfbdwtk.supabase.co", // 
+            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsamhmYnJ0enV3ZW5yZmJkd3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjYyODYsImV4cCI6MjA5NzU0MjI4Nn0.PIzAVBIsBgUQL0sykzYlEZVk-JccYGLvbztF156cJjk", // 
+            
+            // تحديد حسابات المشرفين بنجاح 
+            USERS: {
+                "admin1": "12345", // مسؤول جهة العمل (القسم 4)
+                "admin2": "54321"  // مسؤول المديرية والمستشفى (القسم 5)
+            }
         };
-        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-        let localCacheData = [];
-        let currentActiveRecord = null;
-        let isAdminAuthenticated = false;
+        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); // 
+        let localCacheData = []; // 
+        let currentActiveRecord = null; // 
+        let loggedInAdminRole = null; // تتبع الصلاحية الحالية (admin1 أو admin2)
 
         function switchView(viewId) {
-            if (viewId === 'adminDashboardView' && !isAdminAuthenticated) {
-                viewId = 'adminLoginView';
+            if (viewId === 'adminDashboardView' && !loggedInAdminRole) {
+                viewId = 'adminLoginView'; // [cite: 297]
             }
-            $('.app-view').removeClass('active-view');
-            $(`#${viewId}`).addClass('active-view');
+            $('.app-view').removeClass('active-view'); // [cite: 298]
+            $(`#${viewId}`).addClass('active-view'); // [cite: 298]
         }
 
         $(document).ready(function() {
+            // معالجة تسجيل الدخول والتحقق من حساب كل أدمن
             $('#loginForm').on('submit', function(e) {
                 e.preventDefault();
-                const username = $('#username').val().trim();
+                const username = $('#username').val().trim().toLowerCase();
                 const password = $('#password').val();
 
-                if (username === CONFIG.ADMIN_USERNAME && password === CONFIG.ADMIN_PASSWORD) {
-                    isAdminAuthenticated = true;
+                if (CONFIG.USERS[username] && CONFIG.USERS[username] === password) {
+                    loggedInAdminRole = username;
+                    $('#currentRoleBadge').text(username === 'admin1' ? 'المسؤول الأول (جهة العمل)' : 'المسؤول الثاني (المديرية/المستشفى)');
                     switchView('adminDashboardView');
                     fetchDashboardData();
-                    setupRealtime();
+                    setupRealtime(); // [cite: 310, 311]
                 } else {
-                    alert('فشل الدخول: اسم المستخدم أو كلمة المرور خاطئة. / Incorrect credentials.');
+                    alert('فشل الدخول: اسم المشرف أو كلمة المرور غير صحيحة.');
                 }
             });
 
-            $('#searchBar, #statusFilter').on('input change', applyFiltersAndRender);
+            $('#searchBar, #statusFilter').on('input change', applyFiltersAndRender); // [cite: 312]
 
+            // حفظ التعديلات وإجابات المسؤولين في قاعدة البيانات
             $('#editForm').on('submit', async function(e) {
                 e.preventDefault();
                 const id = $('#edit-id').val();
+                
+                // بناء كائن البيانات المحدثة بناءً على الإدخالات السحابية
                 const updateData = {
                     agreement_number: $('#edit-agreement_number').val(),
-                    agreement_date: $('#edit-agreement_date').val() || null,
-                    approval_date: $('#edit-approval_date').val() || null,
-                    approved_by: $('#edit-approved_by').val(),
-                    clarification: $('#edit-clarification').val(),
-                    recommendation: $('#edit-recommendation').val(),
-                    remarks: $('#edit-remarks').val(),
-                    status: $('#edit-status').val(),
-                    // حفظ بيانات الحقول الجديدة المأخوذة من الصورة
+                    agreement_date: $('#edit-agreement_date').val() || null, // [cite: 313, 314]
+                    approval_date: $('#edit-approval_date').val() || null, // [cite: 314]
+                    approved_by: $('#edit-approved_by').val(), // [cite: 314]
+                    clarification: $('#edit-clarification').val(), // [cite: 314]
+                    status: $('#edit-status').val(), // [cite: 315]
+                    
+                    // بيانات الأدمن الأول (القسم 4)
                     workplace_approval: $('input[name="workplace_approval"]:checked').val(),
-                    disapproval_reasons: $('#edit-disapproval_reasons').val().trim()
+                    disapproval_reasons: $('#edit-disapproval_reasons').val().trim(),
+                    
+                    // بيانات الأدمن الثاني (القسم 5 الجديد)
+                    dept_need: $('input[name="dept_need"]:checked').val(),
+                    dept_sub_approval: $('input[name="dept_sub_approval"]:checked').val(),
+                    proposed_workplace: $('#edit-proposed_workplace').val().trim(),
+                    director_opinion: $('#edit-director_opinion').val().trim()
                 };
 
-                const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
+                const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id); // [cite: 315]
                 if (error) {
-                    alert(error.message);
+                    alert('حدث خطأ أثناء الحفظ السحابي: ' + error.message);
                 } else {
-                    $('#editModal').hide();
+                    alert('تم حفظ إجاباتك ومشاركتها بنجاح مع المشرفين الآخرين!');
+                    $('#editModal').hide(); // [cite: 316]
                     fetchDashboardData();
                 }
             });
 
+            // محرك استخراج ملفات الـ PDF المدمج
             $('#downloadPdfBtn').on('click', function () {
-                const element = document.getElementById('pdfPrintTargetArea');
+                const element = document.getElementById('pdfPrintTargetArea'); // [cite: 317]
                 html2pdf().set({
-                    margin: 10,
-                    filename: `Nomination-Document-${currentActiveRecord.employee_number}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    margin: 8,
+                    filename: `Nomination-Report-${currentActiveRecord.employee_number}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 }, // [cite: 317, 318]
+                    html2canvas: { scale: 2, useCORS: true }, // [cite: 318]
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } // [cite: 318]
                 }).from(element).save();
             });
         });
 
         function executeLogout() {
-            isAdminAuthenticated = false;
-            $('#loginForm')[0].reset();
-            switchView('adminLoginView');
+            loggedInAdminRole = null;
+            $('#loginForm')[0].reset(); // [cite: 321]
+            switchView('adminLoginView'); // [cite: 322]
         }
 
         async function fetchDashboardData() {
-            if (!isAdminAuthenticated) return;
-            const { data, error } = await supabaseClient.from('study_requests').select('*').order('created_at', { ascending: false });
+            if (!loggedInAdminRole) return;
+            const { data, error } = await supabaseClient.from('study_requests').select('*').order('created_at', { ascending: false }); // [cite: 322, 323]
             if (!error) { 
-                localCacheData = data; 
+                localCacheData = data; // [cite: 323]
                 applyFiltersAndRender();
             }
         }
 
         function setupRealtime() {
-            if (!isAdminAuthenticated) return;
-            supabaseClient.channel('unified-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'study_requests' }, () => {
+            if (!loggedInAdminRole) return;
+            supabaseClient.channel('unified-realtime-hub').on('postgres_changes', { event: '*', schema: 'public', table: 'study_requests' }, () => {
                 fetchDashboardData();
-            }).subscribe();
+            }).subscribe(); // [cite: 325]
         }
 
         function applyFiltersAndRender() {
-            const searchVal = $('#searchBar').val().toLowerCase();
-            const filterStatus = $('#statusFilter').val();
+            const searchVal = $('#searchBar').val().toLowerCase(); // [cite: 326]
+            const filterStatus = $('#statusFilter').val(); // [cite: 327]
 
             let filtered = localCacheData.filter(item => {
                 const matchesSearch = (item.employee_name && item.employee_name.toLowerCase().includes(searchVal)) || 
                                       (item.employee_number && item.employee_number.includes(searchVal)) || 
-                                      (item.specialization && item.specialization.toLowerCase().includes(searchVal));
-                const matchesStatus = filterStatus === 'All' || item.status === filterStatus;
+                                      (item.specialization && item.specialization.toLowerCase().includes(searchVal)); // [cite: 327, 328]
+                const matchesStatus = filterStatus === 'All' || item.status === filterStatus; // [cite: 328]
                 return matchesSearch && matchesStatus;
             });
-            renderStats();
-            renderTable(filtered);
+            renderStats(); // [cite: 329]
+            renderTable(filtered); // [cite: 329]
         }
 
         function renderStats() {
-            $('#stat-total').text(localCacheData.length);
-            $('#stat-pending').text(localCacheData.filter(r => r.status === 'Pending').length);
-            $('#stat-approved').text(localCacheData.filter(r => r.status === 'Approved').length);
-            $('#stat-rejected').text(localCacheData.filter(r => r.status === 'Rejected').length);
+            $('#stat-total').text(localCacheData.length); // [cite: 329]
+            $('#stat-pending').text(localCacheData.filter(r => r.status === 'Pending').length); // [cite: 330]
+            $('#stat-approved').text(localCacheData.filter(r => r.status === 'Approved').length); // [cite: 330]
+            $('#stat-rejected').text(localCacheData.filter(r => r.status === 'Rejected').length); // [cite: 330]
         }
 
         function renderTable(data) {
@@ -427,86 +517,144 @@
             data.forEach((row, idx) => {
                 html += `<tr>
                     <td>${idx + 1}</td>
-                    <td>${row.employee_name || ''}</td>
+                    <td><strong>${row.employee_name || ''}</strong></td>
                     <td>${row.employee_number || ''}</td>
                     <td>${row.job_title || ''}</td>
-                    <td>${row.degree || ''}</td>
+                    <td>${row.request_type || ''}</td>
                     <td>${row.specialization || ''}</td>
                     <td><span class="status-badge ${row.status ? row.status.toLowerCase() : 'pending'}">${row.status || 'Pending'}</span></td>
                     <td>${row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB') : '—'}</td>
                     <td>
-                        <button onclick="viewRecord('${row.id}')" class="btn-action btn-view">عرض</button>
-                        <button onclick="editRecord('${row.id}')" class="btn-action btn-edit">تعديل</button>
-                        <button onclick="generatePdfView('${row.id}')" class="btn-action btn-pdf" style="font-size:12px; padding:5px 10px;">PDF</button>
+                        <button onclick="viewRecord('${row.id}')" class="btn-action btn-view">تفاصيل</button>
+                        <button onclick="openEditorByRole('${row.id}')" class="btn-action btn-edit" style="background:${loggedInAdminRole === 'admin2' ? '#0d6efd' : '#ffc107'}; color:${loggedInAdminRole === 'admin2' ? '#fff' : '#000'}">إجراء الاعتماد</button>
+                        <button onclick="generatePdfView('${row.id}')" class="btn-action btn-pdf">PDF</button>
                         <button onclick="deleteRecord('${row.id}')" class="btn-action btn-delete">حذف</button>
                     </td>
-                </tr>`;
+                </tr>`; // [cite: 332, 333, 334, 335]
             });
             $('#tableBody').html(html);
         }
 
         function viewRecord(id) {
-            const r = localCacheData.find(item => item.id === id);
-            let html = '<div class="view-grid">';
+            const r = localCacheData.find(item => item.id === id); // [cite: 336]
+            let html = '<div class="view-grid">'; // [cite: 337]
             for (const [k, v] of Object.entries(r)) {
-                if(v) html += `<p><strong>${k.toUpperCase().replace(/_/g,' ')}:</strong> ${v}</p>`;
+                if(v) html += `<p><strong>${k.toUpperCase().replace(/_/g,' ')}:</strong> ${v}</p>`; // [cite: 337]
             }
             html += '</div>';
-            $('#viewDetailsBody').html(html);
-            $('#viewModal').show();
+            $('#viewDetailsBody').html(html); // [cite: 338]
+            $('#viewModal').show(); // [cite: 338]
         }
 
-        function editRecord(id) {
-            const r = localCacheData.find(item => item.id === id);
-            $('#edit-id').val(r.id);
-            $('#edit-agreement_number').val(r.agreement_number || '');
-            $('#edit-agreement_date').val(r.agreement_date || '');
-            $('#edit-approval_date').val(r.approval_date || '');
-            $('#edit-approved_by').val(r.approved_by || '');
-            $('#edit-clarification').val(r.clarification || '');
-            $('#edit-recommendation').val(r.recommendation || '');
-            $('#edit-remarks').val(r.remarks || '');
-            $('#edit-status').val(r.status || 'Pending');
+        // دالة مخصصة لفتح محرر البيانات مع فرز الخيارات المتاحة بناءً على نوع الـ Admin الحالي
+        function openEditorByRole(id) {
+            const r = localCacheData.find(item => item.id === id); // [cite: 339]
             
-            // جلب وعرض الخيارات المخزنة مسبقاً للقسم رقم 4
-            const approvalChoice = r.workplace_approval || 'none';
-            $(`input[name="workplace_approval"][value="${approvalChoice}"]`).prop('checked', true);
+            $('#edit-id').val(r.id); // [cite: 340]
+            $('#edit-agreement_number').val(r.agreement_number || ''); // [cite: 340]
+            $('#edit-agreement_date').val(r.agreement_date || ''); // [cite: 340]
+            $('#edit-approval_date').val(r.approval_date || ''); // [cite: 340]
+            $('#edit-approved_by').val(r.approved_by || ''); // [cite: 340]
+            $('#edit-clarification').val(r.clarification || ''); // [cite: 340]
+            $('#edit-status').val(r.status || 'Pending'); // [cite: 341]
+            
+            // تهيئة حقول الأدمن الأول (القسم 4)
+            const workplaceApp = r.workplace_approval || 'none';
+            $(`input[name="workplace_approval"][value="${workplaceApp}"]`).prop('checked', true);
             $('#edit-disapproval_reasons').val(r.disapproval_reasons || '');
+
+            // تهيئة حقول الأدمن الثاني (القسم 5 الجديد)
+            const deptNeed = r.dept_need || 'none';
+            $(`input[name="dept_need"][value="${deptNeed}"]`).prop('checked', true);
             
-            $('#editModal').show();
+            const deptSub = r.dept_sub_approval || 'none';
+            $(`input[name="dept_sub_approval"][value="${deptSub}"]`).prop('checked', true);
+            
+            $('#edit-proposed_workplace').val(r.proposed_workplace || '');
+            $('#edit-director_opinion').val(r.director_opinion || '');
+
+            // التحكم الديناميكي في إظهار الأقسام المناسبة
+            if (loggedInAdminRole === 'admin1') {
+                $('#modalActionTitle').text('تعديل البيانات وإجراءات جهة العمل | Admin 1');
+                $('#admin1FormSection').show();
+                $('#admin2FormSection').hide();
+            } else if (loggedInAdminRole === 'admin2') {
+                $('#modalActionTitle').text('تعديل البيانات وإجراءات المديرية والمستشفى | Admin 2');
+                $('#admin1FormSection').hide();
+                $('#admin2FormSection').show();
+
+                // عرض إجابة الأدمن الأول لتسهيل المتابعة على الأدمن الثاني
+                let txtAdmin1 = "لم يتم الرد من جهة العمل بعد.";
+                if(r.workplace_approval === 'without_sub') txtAdmin1 = "تمت الموافقة الداخلية (بدون بديل)";
+                if(r.workplace_approval === 'with_sub') txtAdmin1 = "تمت الموافقة الداخلية (مع توفير البديل)";
+                if(r.disapproval_reasons) txtAdmin1 += ` | أسباب الرفض: ${r.disapproval_reasons}`;
+                $('#displayAdmin1Answer').text(txtAdmin1);
+            }
+
+            $('#editModal').show(); // [cite: 341]
         }
 
         async function deleteRecord(id) {
-            if (confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
-                const { error } = await supabaseClient.from('study_requests').delete().eq('id', id);
-                if (error) alert(error.message);
+            if (confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) { // [cite: 341]
+                const { error } = await supabaseClient.from('study_requests').delete().eq('id', id); // [cite: 341]
+                if (error) alert(error.message); // [cite: 342]
                 else fetchDashboardData();
             }
         }
 
+        // محرك تعبئة وطباعة مستند الـ PDF المشترك (يجمع الأقسام 4 و 5 ديناميكياً)
         function generatePdfView(id) {
-            const r = localCacheData.find(item => item.id === id);
-            currentActiveRecord = r;
+            const r = localCacheData.find(item => item.id === id); // [cite: 342]
+            currentActiveRecord = r; // [cite: 343]
 
+            // ملء النصوص والبيانات التلقائية للطلب
             for (const [key, val] of Object.entries(r)) {
-                $(`#pdf-${key}`).text(val ? val : "—");
+                $(`#pdf-${key}`).text(val ? val : "—"); // [cite: 343]
             }
 
-            // رسم وتفعيل علامة الصح الاختيارية ديناميكياً داخل ملف الـ PDF بناء على المدخلات
+            // تفعيل خيارات الصح الجمالية للقسم رقم 4 (أدمن 1)
             if (r.workplace_approval === 'without_sub') {
-                $('#pdf-chk-without').text('[✔] بدون بديل');
-                $('#pdf-chk-with').text('[ ] مع توفير البديل');
+                $('#pdf-chk-without').text('[✔] أوافق (بدون بديل)');
+                $('#pdf-chk-with').text('[ ] أوافق (مع توفير البديل)');
             } else if (r.workplace_approval === 'with_sub') {
-                $('#pdf-chk-without').text('[ ] بدون بديل');
-                $('#pdf-chk-with').text('[✔] مع توفير البديل');
+                $('#pdf-chk-without').text('[ ] أوافق (بدون بديل)');
+                $('#pdf-chk-with').text('[✔] أوافق (مع توفير البديل)');
             } else {
-                $('#pdf-chk-without').text('[ ] بدون بديل');
-                $('#pdf-chk-with').text('[ ] مع توفير البديل');
+                $('#pdf-chk-without').text('[ ] أوافق (بدون بديل)');
+                $('#pdf-chk-with').text('[ ] أوافق (مع توفير البديل)');
             }
-
             $('#pdf-disapproval_reasons').text(r.disapproval_reasons ? r.disapproval_reasons : "لا يوجد / None");
 
-            switchView('pdfDocumentView');
+            // تفعيل خيارات الصح الجمالية للقسم رقم 5 الجديد (أدمن 2)
+            // 1. الحاجة للتخصص
+            if (r.dept_need === 'yes') {
+                $('#pdf-chk-need-yes').text('[✔] يوجد حاجة');
+                $('#pdf-chk-need-no').text('[ ] لا يوجد حاجة');
+            } else if (r.dept_need === 'no') {
+                $('#pdf-chk-need-yes').text('[ ] يوجد حاجة');
+                $('#pdf-chk-need-no').text('[✔] لا يوجد حاجة');
+            } else {
+                $('#pdf-chk-need-yes').text('[ ] يوجد حاجة');
+                $('#pdf-chk-need-no').text('[ ] لا يوجد حاجة');
+            }
+
+            // 2. الموافقة على البديل
+            if (r.dept_sub_approval === 'yes') {
+                $('#pdf-chk-sub-yes').text('[✔] نعم');
+                $('#pdf-chk-sub-no').text('[ ] لا');
+            } else if (r.dept_sub_approval === 'no') {
+                $('#pdf-chk-sub-yes').text('[ ] نعم');
+                $('#pdf-chk-sub-no').text('[✔] لا');
+            } else {
+                $('#pdf-chk-sub-yes').text('[ ] نعم');
+                $('#pdf-chk-sub-no').text('[ ] لا');
+            }
+
+            // 3 + 4 البيانات النصية المتقدمة للقسم 5
+            $('#pdf-proposed_workplace').text(r.proposed_workplace ? r.proposed_workplace : "—");
+            $('#pdf-director_opinion').text(r.director_opinion ? r.director_opinion : "لم يدون رأي حتى الآن.");
+
+            switchView('pdfDocumentView'); // [cite: 344]
         }
     </script>
 </body>
