@@ -865,17 +865,17 @@
             <footer class="pdf-signatures-section">
                 <div class="sig-block">
                     <p><strong>توقيع المسؤول المباشر (القسم 4):</strong></p>
-                    <hr>
+                    <p style="font-size:11px;">التوقيع:</p>
                     <img id="pdf-admin1-signature" style="max-height:70px">
                 </div>
                 <div class="sig-block" style="border-right: 1px dashed #cbd5e1; border-left: 1px dashed #cbd5e1;">
                     <p><strong>مدير الدائرة / المستشفى (القسم 5):</strong></p>
-                    <hr>
+                    <p style="font-size:11px;">التوقيع: ........................................</p>
                     <img id="pdf-admin2-signature" style="max-height:70px">
                 </div>
                 <div class="sig-block">
                     <p><strong>رئيس لجنة البعثات الفرعية (القسم 6):</strong></p>
-                    <hr>
+                    <p style="font-size:11px;">التوقيع: ........................................</p>
                     <img id="pdf-admin3-signature" style="max-height:70px">
                 </div>
             </footer>
@@ -1171,18 +1171,6 @@
 
                     updateData.admin2_approval_date =
                         $('#edit-approval_date').val() || null;
-                    
-                    updateData.admin2_status = $('#edit-status').val();
-
-                    // 🔥 ADD THIS:
-                    if (updateData.admin2_status === "Rejected") {
-                        updateData.final_status = "Rejected";
-                    }
-                
-                    if (updateData.admin2_status === "Approved") {
-                        // optional: only approve if all stages approved
-                        updateData.final_status = "Approved";
-                    }
                 }
                 else if (loggedInAdminRole === "admin3") {
                     const file = $('#admin3Signature')[0].files[0]; if (file) { updateData.admin3_signature_url = await uploadSignature(file, 'admin3'); }
@@ -1205,22 +1193,30 @@
                     updateData.admin3_approval_date =
                         $('#edit-approval_date').val() || null;
                 }
+                const current = currentActiveRecord;
+                const statuses = {
+                    admin1: updateData.admin1_status || r?.admin1_status,
+                    admin2: updateData.admin2_status || r?.admin2_status,
+                    admin3: updateData.admin3_status || r?.admin3_status
+                };
 
-                // منطق الحالة النهائية
-                const a1 = updateData.admin1_status || r.admin1_status;
-                const a2 = updateData.admin2_status || r.admin2_status;
-                const a3 = updateData.admin3_status || r.admin3_status;
-
-                if (a1 === "Rejected" || a2 === "Rejected" || a3 === "Rejected") {
+                if (
+                    statuses.admin1 === "Rejected" ||
+                    statuses.admin2 === "Rejected" ||
+                    statuses.admin3 === "Rejected"
+                ) {
                     updateData.final_status = "Rejected";
-                } 
-                else if (a1 === "Approved" && a2 === "Approved" && a3 === "Approved") {
+                }
+                else if (
+                    statuses.admin1 === "Approved" &&
+                    statuses.admin2 === "Approved" &&
+                    statuses.admin3 === "Approved"
+                ) {
                     updateData.final_status = "Approved";
-                } 
+                }
                 else {
                     updateData.final_status = "Pending";
-}
-
+                }
                 // 2. تحديث الحالة النهائية
                 // ملاحظة: المنطق البرمجي المكتوب سابقاً في الكود سيقوم بحساب الحالة النهائية تلقائياً
 
