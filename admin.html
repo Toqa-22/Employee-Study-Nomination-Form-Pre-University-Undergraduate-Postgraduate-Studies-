@@ -866,14 +866,17 @@
             <footer class="pdf-signatures-section">
                 <div class="sig-block">
                     <p><strong>توقيع المسؤول المباشر (القسم 4):</strong></p>
+                    <p style="font-size:11px;">التوقيع:</p>
                     <img id="pdf-admin1-signature" style="max-height:70px">
                 </div>
                 <div class="sig-block" style="border-right: 1px dashed #cbd5e1; border-left: 1px dashed #cbd5e1;">
-                    <p><strong>توقيع مدير الدائرة / المستشفى (القسم 5):</strong></p>
+                    <p><strong>مدير الدائرة / المستشفى (القسم 5):</strong></p>
+                    <p style="font-size:11px;">التوقيع: ........................................</p>
                     <img id="pdf-admin2-signature" style="max-height:70px">
                 </div>
                 <div class="sig-block">
-                    <p><strong> توقيع رئيس لجنة البعثات الفرعية (القسم 6):</strong></p>
+                    <p><strong>رئيس لجنة البعثات الفرعية (القسم 6):</strong></p>
+                    <p style="font-size:11px;">التوقيع: ........................................</p>
                     <img id="pdf-admin3-signature" style="max-height:70px">
                 </div>
             </footer>
@@ -1495,7 +1498,7 @@
             $(`input[name="workplace_approval"][value="${r.workplace_approval || 'none'}"]`).prop('checked', true);
             $('#edit-disapproval_reasons').val(r.disapproval_reasons || '');
 
-            let admin1SummaryText = "لم يحدد بعد";
+            let admin1SummaryText = "لم يوافق بعد";
             if (r.workplace_approval === 'without_sub') admin1SummaryText = "موافق (بدون بديل)";
             if (r.workplace_approval === 'with_sub') admin1SummaryText = "موافق (مع توفير البديل)";
             if (r.disapproval_reasons) admin1SummaryText += ` - أسباب الرفض: ${r.disapproval_reasons}`;
