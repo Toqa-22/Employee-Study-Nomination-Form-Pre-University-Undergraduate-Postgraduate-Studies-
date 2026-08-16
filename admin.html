@@ -1036,6 +1036,8 @@
         let localCacheData = [];
         let currentActiveRecord = null;
         let loggedInAdminRole = null;
+        let loggedInUsername = null;
+        let loggedInPassword = null;
 
         async function uploadSignature(file, folder) { if (!file) return null; const fileName = `${folder}_${Date.now()}_${file.name}`; const { error } = await supabaseClient.storage.from('signatures').upload(fileName, file); if (error) throw error; const { data } = supabaseClient.storage.from('signatures').getPublicUrl(fileName); return data.publicUrl; }
 
@@ -1095,22 +1097,28 @@
                 const username = $('#username').val().trim().toLowerCase();
                 const password = $('#password').val();
 
-                const { data, error } = await supabaseClient.rpc('verify_admin_login', {
+                const { data: role, error } = await supabaseClient.rpc('admin_login', {
                     p_username: username,
                     p_password: password
                 });
 
-                const result = data && data[0];
-
-                if (!error && result && result.success) {
-                    loggedInAdminRole = result.role;
-                    $('#currentRoleBadge').text(result.display_name);
-                    switchView('adminDashboardView');
-                    fetchDashboardData();
-                    setupRealtime();
-                } else {
+                if (error || !role) {
                     alert('فشل الدخول: اسم المستخدم أو كلمة المرور خاطئة.');
+                    return;
                 }
+
+                loggedInAdminRole = role;
+                loggedInUsername = username;
+                loggedInPassword = password;
+
+                let badgeText = "";
+                if (role === 'admin1') badgeText = "المسؤول الأول (جهة العمل)";
+                if (role === 'admin2') badgeText = "المسؤول الثاني (المديرية/المستشفى)";
+                if (role === 'admin3') badgeText = "المسؤول الثالث (رئيس اللجنة بالمحافظة)";
+                $('#currentRoleBadge').text(badgeText);
+                switchView('adminDashboardView');
+                fetchDashboardData();
+                setupRealtime();
             });
 
             $('#searchBar, #statusFilter').on('input change', applyFiltersAndRender);
@@ -1118,108 +1126,62 @@
             $('#editForm').on('submit', async function (e) {
                 e.preventDefault();
                 const id = $('#edit-id').val();
-                const updateData = {};
+                let error = null;
 
-                // 1. تحديث الحقول الخاصة بكل دور
+                // كل دور يستخدم RPC خاص فيه فقط — الحماية على مستوى القاعدة (final_status يُحسب تلقائياً بـ trigger)
                 if (loggedInAdminRole === "admin1") {
+                    const file = $('#admin1Signature')[0].files[0];
+                    const signatureUrl = file ? await uploadSignature(file, 'admin1') : null;
 
-                    const file = $('#admin1Signature')[0].files[0]; if (file) { updateData.admin1_signature_url = await uploadSignature(file, 'admin1'); }
-
-                    updateData.workplace_approval =
-                        $('input[name="workplace_approval"]:checked').val();
-
-                    updateData.disapproval_reasons =
-                        $('#edit-disapproval_reasons').val();
-
-                    updateData.admin1_status =
-                        $('#edit-status').val();
-
-                    updateData.admin1_remarks =
-                        $('#edit-remarks').val();
-
-                    updateData.admin1_approved_by =
-                        $('#edit-approved_by').val();
-
-                    updateData.admin1_approval_date =
-                        $('#edit-approval_date').val() || null;
+                    ({ error } = await supabaseClient.rpc('admin1_update_request', {
+                        p_username: loggedInUsername,
+                        p_password: loggedInPassword,
+                        p_id: id,
+                        p_workplace_approval: $('input[name="workplace_approval"]:checked').val() || null,
+                        p_disapproval_reasons: $('#edit-disapproval_reasons').val() || null,
+                        p_admin1_status: $('#edit-status').val() || null,
+                        p_admin1_remarks: $('#edit-remarks').val() || null,
+                        p_admin1_approved_by: $('#edit-approved_by').val() || null,
+                        p_admin1_approval_date: $('#edit-approval_date').val() || null,
+                        p_admin1_signature_url: signatureUrl
+                    }));
                 }
                 else if (loggedInAdminRole === "admin2") {
-                    const file = $('#admin2Signature')[0].files[0]; if (file) { updateData.admin2_signature_url = await uploadSignature(file, 'admin2'); }
+                    const file = $('#admin2Signature')[0].files[0];
+                    const signatureUrl = file ? await uploadSignature(file, 'admin2') : null;
 
-
-                    updateData.dept_need =
-                        $('input[name="dept_need"]:checked').val();
-
-                    updateData.dept_sub_approval =
-                        $('input[name="dept_sub_approval"]:checked').val();
-
-                    updateData.proposed_workplace =
-                        $('#edit-proposed_workplace').val();
-
-                    updateData.director_opinion =
-                        $('#edit-director_opinion').val();
-
-                    updateData.admin2_status =
-                        $('#edit-status').val();
-
-                    updateData.admin2_remarks =
-                        $('#edit-remarks').val();
-
-                    updateData.admin2_approved_by =
-                        $('#edit-approved_by').val();
-
-                    updateData.admin2_approval_date =
-                        $('#edit-approval_date').val() || null;
+                    ({ error } = await supabaseClient.rpc('admin2_update_request', {
+                        p_username: loggedInUsername,
+                        p_password: loggedInPassword,
+                        p_id: id,
+                        p_dept_need: $('input[name="dept_need"]:checked').val() || null,
+                        p_dept_sub_approval: $('input[name="dept_sub_approval"]:checked').val() || null,
+                        p_proposed_workplace: $('#edit-proposed_workplace').val() || null,
+                        p_director_opinion: $('#edit-director_opinion').val() || null,
+                        p_admin2_status: $('#edit-status').val() || null,
+                        p_admin2_remarks: $('#edit-remarks').val() || null,
+                        p_admin2_approved_by: $('#edit-approved_by').val() || null,
+                        p_admin2_approval_date: $('#edit-approval_date').val() || null,
+                        p_admin2_signature_url: signatureUrl
+                    }));
                 }
                 else if (loggedInAdminRole === "admin3") {
-                    const file = $('#admin3Signature')[0].files[0]; if (file) { updateData.admin3_signature_url = await uploadSignature(file, 'admin3'); }
+                    const file = $('#admin3Signature')[0].files[0];
+                    const signatureUrl = file ? await uploadSignature(file, 'admin3') : null;
 
-                    updateData.gov_committee_decision =
-                        $('#edit-gov_committee_decision').val();
-
-                    updateData.committee_chair_signature =
-                        $('#edit-committee_chair_signature').val();
-
-                    updateData.admin3_status =
-                        $('#edit-status').val();
-
-                    updateData.admin3_remarks =
-                        $('#edit-remarks').val();
-
-                    updateData.admin3_approved_by =
-                        $('#edit-approved_by').val();
-
-                    updateData.admin3_approval_date =
-                        $('#edit-approval_date').val() || null;
+                    ({ error } = await supabaseClient.rpc('admin3_update_request', {
+                        p_username: loggedInUsername,
+                        p_password: loggedInPassword,
+                        p_id: id,
+                        p_gov_committee_decision: $('#edit-gov_committee_decision').val() || null,
+                        p_committee_chair_signature: $('#edit-committee_chair_signature').val() || null,
+                        p_admin3_status: $('#edit-status').val() || null,
+                        p_admin3_remarks: $('#edit-remarks').val() || null,
+                        p_admin3_approved_by: $('#edit-approved_by').val() || null,
+                        p_admin3_approval_date: $('#edit-approval_date').val() || null,
+                        p_admin3_signature_url: signatureUrl
+                    }));
                 }
-                const r = currentActiveRecord || {};
-                const statuses = {
-                    admin1: updateData.admin1_status || r?.admin1_status,
-                    admin2: updateData.admin2_status || r?.admin2_status,
-                    admin3: updateData.admin3_status || r?.admin3_status
-                };
-
-                if (
-                    statuses.admin1 === "Rejected" ||
-                    statuses.admin2 === "Rejected" ||
-                    statuses.admin3 === "Rejected"
-                ) {
-                    updateData.final_status = "Rejected";
-                }
-                else if (
-                    statuses.admin1 === "Approved" &&
-                    statuses.admin2 === "Approved" &&
-                    statuses.admin3 === "Approved"
-                ) {
-                    updateData.final_status = "Approved";
-                }
-                else {
-                    updateData.final_status = "Pending";
-                }
-                // 2. تحديث الحالة النهائية
-                // ملاحظة: المنطق البرمجي المكتوب سابقاً في الكود سيقوم بحساب الحالة النهائية تلقائياً
-
-                const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
 
                 if (error) {
                     alert('خطأ أثناء الحفظ: ' + error.message);
@@ -1265,7 +1227,10 @@
         });
 
         async function fetchDashboardData() {
-            const { data, error } = await supabaseClient.from('study_requests').select('*').order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.rpc('admin_list_requests', {
+                p_username: loggedInUsername,
+                p_password: loggedInPassword
+            });
             if (error) {
                 console.error(error);
                 return;
@@ -1548,7 +1513,11 @@
 
         async function deleteRecord(id) {
             if (!confirm('هل أنت متأكد تماماً من حذف هذا الطلب بشكل نهائي من قاعدة البيانات؟')) return;
-            const { error } = await supabaseClient.from('study_requests').delete().eq('id', id);
+            const { error } = await supabaseClient.rpc('admin_delete_request', {
+                p_username: loggedInUsername,
+                p_password: loggedInPassword,
+                p_id: id
+            });
             if (error) alert('فشل الحذف: ' + error.message);
             else {
                 alert('تم حذف السجل بنجاح.');
@@ -1558,6 +1527,8 @@
 
         function executeLogout() {
             loggedInAdminRole = null;
+            loggedInUsername = null;
+            loggedInPassword = null;
             switchView('employeeFormView');
         }
         async function uploadSignature(file, folder) {
