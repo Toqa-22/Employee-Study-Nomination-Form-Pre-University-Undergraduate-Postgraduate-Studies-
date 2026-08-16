@@ -1029,12 +1029,7 @@
     <script>
         const CONFIG = {
             SUPABASE_URL: "https://madotcsswnitqmrbklvh.supabase.co",
-            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZG90Y3Nzd25pdHFtcmJrbHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODAzNjcsImV4cCI6MjEwMjQ1NjM2N30.HA-RcMaN-Ol4xSx6q8W57K673A4PSc503JKqMAEUR6k",
-            USERS: {
-                "admin1": "12345",
-                "admin2": "54321",
-                "admin3": "98765"
-            }
+            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZG90Y3Nzd25pdHFtcmJrbHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODAzNjcsImV4cCI6MjEwMjQ1NjM2N30.HA-RcMaN-Ol4xSx6q8W57K673A4PSc503JKqMAEUR6k"
         };
 
         const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -1095,17 +1090,21 @@
                 }
             });
 
-            $('#loginForm').on('submit', function (e) {
+            $('#loginForm').on('submit', async function (e) {
                 e.preventDefault();
                 const username = $('#username').val().trim().toLowerCase();
                 const password = $('#password').val();
-                if (CONFIG.USERS[username] && CONFIG.USERS[username] === password) {
-                    loggedInAdminRole = username;
-                    let badgeText = "";
-                    if (username === 'admin1') badgeText = "المسؤول الأول (جهة العمل)";
-                    if (username === 'admin2') badgeText = "المسؤول الثاني (المديرية/المستشفى)";
-                    if (username === 'admin3') badgeText = "المسؤول الثالث (رئيس اللجنة بالمحافظة)";
-                    $('#currentRoleBadge').text(badgeText);
+
+                const { data, error } = await supabaseClient.rpc('verify_admin_login', {
+                    p_username: username,
+                    p_password: password
+                });
+
+                const result = data && data[0];
+
+                if (!error && result && result.success) {
+                    loggedInAdminRole = result.role;
+                    $('#currentRoleBadge').text(result.display_name);
                     switchView('adminDashboardView');
                     fetchDashboardData();
                     setupRealtime();
