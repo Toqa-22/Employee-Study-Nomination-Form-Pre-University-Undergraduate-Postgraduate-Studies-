@@ -85,6 +85,14 @@
                         <label>تاريخ التعيين / Appointment Date *</label>
                         <input type="date" id="appointment_date" required>
                     </div>
+                    <div class="form-group">
+                        <label>القسم / Department *</label>
+                        <select id="work_department" required>
+                            <option value="" disabled selected>اختر القسم</option>
+                            <option value="تمريض">تمريض</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
                 </fieldset>
 
                 <fieldset>
@@ -175,6 +183,7 @@
                     work_place: $('#work_place').val().trim(),
                     grade: $('#grade').val().trim(),
                     appointment_date: $('#appointment_date').val(),
+                    work_department: $('#work_department').val(),
                     request_type: $('#request_type').val(),
                     study_system: selectedSystem,
                     degree: $('#degree').val().trim(),
