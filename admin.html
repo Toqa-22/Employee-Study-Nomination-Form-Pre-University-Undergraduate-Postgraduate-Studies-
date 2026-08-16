@@ -9,7 +9,6 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="config.js"></script>
 
     <style>
         :root {
@@ -612,12 +611,12 @@
             <h2 style="text-align: center; margin-bottom: 20px;">تسجيل دخول الإدارة والمشرفين</h2>
             <div
                 style="text-align: center; background: #e3faf2; color: #0f5132; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: bold;">
-                الرجاء تسجيل الدخول بحساب المسؤول المخصص لك
+                الرجاء تسجيل الدخول بحساب المسؤول المخصص لك (admin1، admin2، admin3)
             </div>
             <form id="loginForm">
                 <div class="form-group">
                     <label>اسم المستخدم / Username</label>
-                    <input type="text" id="username" required placeholder="اسم المستخدم">
+                    <input type="text" id="username" required placeholder="admin1 / admin2 / admin3">
                 </div>
                 <div class="form-group">
                     <label>كلمة المرور / Password</label>
@@ -902,7 +901,7 @@
                     style="display:none; border: 1px solid #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #fafafa;">
                     <h3
                         style="font-size:14px; color: var(--primary-color); border-bottom:1px solid #dee2e6; margin-bottom:10px; padding-bottom:5px;">
-                        4 : خاص بمسؤول جهة عمل المرشح (مستوى المستشفى)</h3>
+                        4 : خاص بمسؤول جهة عمل المرشح (Admin 1)</h3>
                     <div class="form-group">
                         <label>قرار أوافق / الموافقة الداخلية:</label>
                         <div class="radio-inline-group">
@@ -926,10 +925,10 @@
                     style="display:none; border: 1px solid #0d6efd; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #f4f8ff;">
                     <h3
                         style="font-size:14px; color: #0d6efd; border-bottom:1px solid #b6d4fe; margin-bottom:10px; padding-bottom:5px;">
-                        5 : خاص بالدائرة المختصة بالمديرية</h3>
+                        5 : خاص بالدائرة المختصة بالمديرية / المستشفى (Admin 2)</h3>
                     <div
                         style="background:#fff; padding:8px; border:1px solid #cbd5e1; margin-bottom:12px; font-size:13px; border-radius:4px;">
-                        <strong style="color:var(--danger-color)">رد جهة العمل السابقة (المستشفى):</strong>
+                        <strong style="color:var(--danger-color)">رد جهة العمل السابقة (Admin 1):</strong>
                         <p id="displayAdmin1Answer" style="margin-top:3px; font-weight:bold;"></p>
                     </div>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
@@ -967,13 +966,13 @@
                     style="display:none; border: 2px solid #198754; padding: 15px; border-radius: 6px; margin-bottom: 15px; background: #f6fbf7;">
                     <h3
                         style="font-size:14px; color: #198754; border-bottom:1px solid #a3cfbb; margin-bottom:10px; padding-bottom:5px;">
-                        6 : القرار النهائي (المشرف العام)</h3>
+                        6 : خاص بلجنة البعثات الفرعية بالمحافظة (Admin 3)</h3>
                     <div
                         style="background:#fff; padding:8px; border:1px solid #cbd5e1; margin-bottom:12px; font-size:12px; border-radius:4px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div><strong>رد جهة العمل (المستشفى):</strong>
+                        <div><strong>رد جهة العمل (Admin 1):</strong>
                             <p id="summaryAdmin1" style="font-weight:bold; color: #555;"></p>
                         </div>
-                        <div><strong>رد الدائرة (المديرية):</strong>
+                        <div><strong>رد الدائرة (Admin 2):</strong>
                             <p id="summaryAdmin2" style="font-weight:bold; color: #555;"></p>
                         </div>
                     </div>
@@ -1028,25 +1027,20 @@
     </div>
 
     <script>
+        const CONFIG = {
+            SUPABASE_URL: "https://madotcsswnitqmrbklvh.supabase.co",
+            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZG90Y3Nzd25pdHFtcmJrbHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODAzNjcsImV4cCI6MjEwMjQ1NjM2N30.HA-RcMaN-Ol4xSx6q8W57K673A4PSc503JKqMAEUR6k",
+            USERS: {
+                "admin1": "12345",
+                "admin2": "54321",
+                "admin3": "98765"
+            }
+        };
+
+        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         let localCacheData = [];
         let currentActiveRecord = null;
         let loggedInAdminRole = null;
-
-        // خريطة الأدوار الخمسة: القسم (تمريض/أخرى) والمرحلة (1=مستشفى، 2=مديرية، 3=مشرف عام)
-        const ROLE_STAGE = {
-            nursing_hosp: 1,
-            other_hosp: 1,
-            nursing_dir: 2,
-            other_dir: 2,
-            full: 3
-        };
-        const ROLE_DEPT = {
-            nursing_hosp: 'تمريض',
-            nursing_dir: 'تمريض',
-            other_hosp: 'أخرى',
-            other_dir: 'أخرى',
-            full: null   // المشرف العام يشوف كل الأقسام
-        };
 
         async function uploadSignature(file, folder) { if (!file) return null; const fileName = `${folder}_${Date.now()}_${file.name}`; const { error } = await supabaseClient.storage.from('signatures').upload(fileName, file); if (error) throw error; const { data } = supabaseClient.storage.from('signatures').getPublicUrl(fileName); return data.publicUrl; }
 
@@ -1092,7 +1086,7 @@
                     final_status: 'Pending'
                 };
 
-                const { error } = await supabaseClient.from('study_nominations').insert([formData]);
+                const { error } = await supabaseClient.from('study_requests').insert([formData]);
                 if (error) alert('خطأ أثناء الحفظ: ' + error.message);
                 else {
                     alert('تم إرسال الطلب بنجاح ونقله إلى قائمة الانتظار.');
@@ -1101,20 +1095,17 @@
                 }
             });
 
-            $('#loginForm').on('submit', async function (e) {
+            $('#loginForm').on('submit', function (e) {
                 e.preventDefault();
                 const username = $('#username').val().trim().toLowerCase();
                 const password = $('#password').val();
-
-                const { data: adminRow, error: loginError } = await supabaseClient
-                    .from('admin_users')
-                    .select('username, password, role, display_name')
-                    .eq('username', username)
-                    .single();
-
-                if (!loginError && adminRow && adminRow.password === password && ROLE_STAGE[adminRow.role]) {
-                    loggedInAdminRole = adminRow.role;
-                    $('#currentRoleBadge').text(adminRow.display_name || adminRow.role);
+                if (CONFIG.USERS[username] && CONFIG.USERS[username] === password) {
+                    loggedInAdminRole = username;
+                    let badgeText = "";
+                    if (username === 'admin1') badgeText = "المسؤول الأول (جهة العمل)";
+                    if (username === 'admin2') badgeText = "المسؤول الثاني (المديرية/المستشفى)";
+                    if (username === 'admin3') badgeText = "المسؤول الثالث (رئيس اللجنة بالمحافظة)";
+                    $('#currentRoleBadge').text(badgeText);
                     switchView('adminDashboardView');
                     fetchDashboardData();
                     setupRealtime();
@@ -1130,12 +1121,10 @@
                 const id = $('#edit-id').val();
                 const updateData = {};
 
-                // 1. تحديث الحقول الخاصة بكل مرحلة (حسب دور المستخدم المسجّل دخوله)
-                const stage = ROLE_STAGE[loggedInAdminRole];
+                // 1. تحديث الحقول الخاصة بكل دور
+                if (loggedInAdminRole === "admin1") {
 
-                if (stage === 1) {
-
-                    const file = $('#admin1Signature')[0].files[0]; if (file) { updateData.admin1_signature_url = await uploadSignature(file, 'stage1'); }
+                    const file = $('#admin1Signature')[0].files[0]; if (file) { updateData.admin1_signature_url = await uploadSignature(file, 'admin1'); }
 
                     updateData.workplace_approval =
                         $('input[name="workplace_approval"]:checked').val();
@@ -1155,8 +1144,8 @@
                     updateData.admin1_approval_date =
                         $('#edit-approval_date').val() || null;
                 }
-                else if (stage === 2) {
-                    const file = $('#admin2Signature')[0].files[0]; if (file) { updateData.admin2_signature_url = await uploadSignature(file, 'stage2'); }
+                else if (loggedInAdminRole === "admin2") {
+                    const file = $('#admin2Signature')[0].files[0]; if (file) { updateData.admin2_signature_url = await uploadSignature(file, 'admin2'); }
 
 
                     updateData.dept_need =
@@ -1183,8 +1172,8 @@
                     updateData.admin2_approval_date =
                         $('#edit-approval_date').val() || null;
                 }
-                else if (stage === 3) {
-                    const file = $('#admin3Signature')[0].files[0]; if (file) { updateData.admin3_signature_url = await uploadSignature(file, 'stage3'); }
+                else if (loggedInAdminRole === "admin3") {
+                    const file = $('#admin3Signature')[0].files[0]; if (file) { updateData.admin3_signature_url = await uploadSignature(file, 'admin3'); }
 
                     updateData.gov_committee_decision =
                         $('#edit-gov_committee_decision').val();
@@ -1231,7 +1220,7 @@
                 // 2. تحديث الحالة النهائية
                 // ملاحظة: المنطق البرمجي المكتوب سابقاً في الكود سيقوم بحساب الحالة النهائية تلقائياً
 
-                const { error } = await supabaseClient.from('study_nominations').update(updateData).eq('id', id);
+                const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
 
                 if (error) {
                     alert('خطأ أثناء الحفظ: ' + error.message);
@@ -1277,14 +1266,7 @@
         });
 
         async function fetchDashboardData() {
-            let query = supabaseClient.from('study_nominations').select('*').order('created_at', { ascending: false });
-
-            const dept = ROLE_DEPT[loggedInAdminRole];
-            if (dept) {
-                query = query.eq('work_department', dept);
-            }
-
-            const { data, error } = await query;
+            const { data, error } = await supabaseClient.from('study_requests').select('*').order('created_at', { ascending: false });
             if (error) {
                 console.error(error);
                 return;
@@ -1296,7 +1278,7 @@
 
         function setupRealtime() {
             supabaseClient.channel('schema-db-changes')
-                .on('postgres_changes', { event: '*', filter: 'final_status=eq.Pending', schema: 'public', table: 'study_nominations' }, () => {
+                .on('postgres_changes', { event: '*', filter: 'final_status=eq.Pending', schema: 'public', table: 'study_requests' }, () => {
                     fetchDashboardData();
                 })
                 .subscribe();
@@ -1514,23 +1496,21 @@
 
             $('#edit-id').val(r.id);
 
-            const stage = ROLE_STAGE[loggedInAdminRole];
-
-            if (stage === 1) {
+            if (loggedInAdminRole == "admin1") {
                 $('#edit-status').val(r.admin1_status);
                 $('#edit-approved_by').val(r.admin1_approved_by);
                 $('#edit-approval_date').val(r.admin1_approval_date);
                 $('#edit-remarks').val(r.admin1_remarks);
 
             }
-            if (stage === 2) {
+            if (loggedInAdminRole == "admin2") {
                 $('#edit-status').val(r.admin2_status);
                 $('#edit-approved_by').val(r.admin2_approved_by);
                 $('#edit-approval_date').val(r.admin2_approval_date);
                 $('#edit-remarks').val(r.admin2_remarks);
             }
 
-            if (stage === 3) {
+            if (loggedInAdminRole == "admin3") {
                 $('#edit-status').val(r.admin3_status);
                 $('#edit-approved_by').val(r.admin3_approved_by);
                 $('#edit-approval_date').val(r.admin3_approval_date);
@@ -1559,9 +1539,9 @@
             $('#edit-committee_chair_signature').val(r.committee_chair_signature || '');
 
             $('#admin1FormSection, #admin2FormSection, #admin3FormSection').hide();
-            if (stage === 1) $('#admin1FormSection').show();
-            if (stage === 2) $('#admin2FormSection').show();
-            if (stage === 3) $('#admin3FormSection').show();
+            if (loggedInAdminRole === 'admin1') $('#admin1FormSection').show();
+            if (loggedInAdminRole === 'admin2') $('#admin2FormSection').show();
+            if (loggedInAdminRole === 'admin3') $('#admin3FormSection').show();
 
             $('#modalActionTitle').text(`تعديل بيانات طلب الموظف: ${r.employee_name}`);
             $('#editModal').show();
@@ -1569,7 +1549,7 @@
 
         async function deleteRecord(id) {
             if (!confirm('هل أنت متأكد تماماً من حذف هذا الطلب بشكل نهائي من قاعدة البيانات؟')) return;
-            const { error } = await supabaseClient.from('study_nominations').delete().eq('id', id);
+            const { error } = await supabaseClient.from('study_requests').delete().eq('id', id);
             if (error) alert('فشل الحذف: ' + error.message);
             else {
                 alert('تم حذف السجل بنجاح.');
