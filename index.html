@@ -42,9 +42,23 @@
 
         .btn-submit { background-color: var(--primary-color); color: #fff; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;}
         .btn-reset { background-color: #6c757d; color: #fff; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px;}
+
+        /* Toast Notifications */
+        #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; padding: 0 20px; pointer-events: none; }
+        .toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 420px; background: #fff; border-radius: 8px; padding: 14px 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border-right: 5px solid var(--primary-color); font-size: 14px; font-weight: 600; opacity: 0; transform: translateY(-15px); transition: opacity .25s ease, transform .25s ease; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { border-right-color: var(--success-color); }
+        .toast.error { border-right-color: var(--danger-color); }
+        .toast .toast-icon { font-size: 20px; flex-shrink: 0; }
+        .toast.success .toast-icon { color: var(--success-color); }
+        .toast.error .toast-icon { color: var(--danger-color); }
+        .toast .toast-text { flex: 1; text-align: right; color: var(--dark-neutral); }
+        .toast .toast-close { cursor: pointer; color: #adb5bd; font-size: 16px; line-height: 1; background: none; border: none; padding: 0; }
     </style>
 </head>
 <body>
+
+    <div id="toastContainer"></div>
 
     <header class="system-nav">
         <h2>نظام ترشيح الدراسات العليا</h2>
@@ -154,6 +168,23 @@
         };
         const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
+        function showToast(message, type = 'success') {
+            const icon = type === 'success' ? '&#10003;' : '&#10007;';
+            const $toast = $(`
+                <div class="toast ${type}">
+                    <span class="toast-icon">${icon}</span>
+                    <span class="toast-text">${message}</span>
+                    <button class="toast-close">&times;</button>
+                </div>
+            `);
+            $('#toastContainer').append($toast);
+            requestAnimationFrame(() => $toast.addClass('show'));
+
+            const remove = () => { $toast.removeClass('show'); setTimeout(() => $toast.remove(), 250); };
+            const timer = setTimeout(remove, 4000);
+            $toast.find('.toast-close').on('click', () => { clearTimeout(timer); remove(); });
+        }
+
         $(document).ready(function() {
             // Toggle dynamic text input box visibility based on selection
             $('#study_system').on('change', function() {
@@ -191,9 +222,9 @@
 
                 const { data, error } = await supabaseClient.from('study_requests').insert([formData]);
                 if (error) {
-                    alert('خطأ أثناء الحفظ: ' + error.message);
+                    showToast('خطأ أثناء الحفظ: ' + error.message, 'error');
                 } else {
-                    alert('تم إرسال الطلب بنجاح ونقله إلى قائمة الانتظار.');
+                    showToast('تم إرسال الطلب بنجاح ونقله إلى قائمة الانتظار.', 'success');
                     $('#nominationForm')[0].reset();
                     $('#other_system_group').hide();
                 }
