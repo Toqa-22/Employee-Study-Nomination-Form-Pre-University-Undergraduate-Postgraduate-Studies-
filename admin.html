@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="config.js"></script>
 
     <style>
         :root {
@@ -1028,8 +1029,6 @@
 
     <script>
         const CONFIG = {
-            SUPABASE_URL: "https://gljhfbrtzuwenrfbdwtk.supabase.co",
-            SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsamhmYnJ0enV3ZW5yZmJkd3RrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjYyODYsImV4cCI6MjA5NzU0MjI4Nn0.PIzAVBIsBgUQL0sykzYlEZVk-JccYGLvbztF156cJjk",
             USERS: {
                 "admin1": "12345",
                 "admin2": "54321",
@@ -1037,7 +1036,6 @@
             }
         };
 
-        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         let localCacheData = [];
         let currentActiveRecord = null;
         let loggedInAdminRole = null;
@@ -1086,7 +1084,7 @@
                     final_status: 'Pending'
                 };
 
-                const { error } = await supabaseClient.from('study_requests').insert([formData]);
+                const { error } = await supabaseClient.from('study_nominations').insert([formData]);
                 if (error) alert('خطأ أثناء الحفظ: ' + error.message);
                 else {
                     alert('تم إرسال الطلب بنجاح ونقله إلى قائمة الانتظار.');
@@ -1220,7 +1218,7 @@
                 // 2. تحديث الحالة النهائية
                 // ملاحظة: المنطق البرمجي المكتوب سابقاً في الكود سيقوم بحساب الحالة النهائية تلقائياً
 
-                const { error } = await supabaseClient.from('study_requests').update(updateData).eq('id', id);
+                const { error } = await supabaseClient.from('study_nominations').update(updateData).eq('id', id);
 
                 if (error) {
                     alert('خطأ أثناء الحفظ: ' + error.message);
@@ -1266,7 +1264,7 @@
         });
 
         async function fetchDashboardData() {
-            const { data, error } = await supabaseClient.from('study_requests').select('*').order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.from('study_nominations').select('*').order('created_at', { ascending: false });
             if (error) {
                 console.error(error);
                 return;
@@ -1278,7 +1276,7 @@
 
         function setupRealtime() {
             supabaseClient.channel('schema-db-changes')
-                .on('postgres_changes', { event: '*', filter: 'final_status=eq.Pending', schema: 'public', table: 'study_requests' }, () => {
+                .on('postgres_changes', { event: '*', filter: 'final_status=eq.Pending', schema: 'public', table: 'study_nominations' }, () => {
                     fetchDashboardData();
                 })
                 .subscribe();
@@ -1549,7 +1547,7 @@
 
         async function deleteRecord(id) {
             if (!confirm('هل أنت متأكد تماماً من حذف هذا الطلب بشكل نهائي من قاعدة البيانات؟')) return;
-            const { error } = await supabaseClient.from('study_requests').delete().eq('id', id);
+            const { error } = await supabaseClient.from('study_nominations').delete().eq('id', id);
             if (error) alert('فشل الحذف: ' + error.message);
             else {
                 alert('تم حذف السجل بنجاح.');
